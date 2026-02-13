@@ -373,7 +373,7 @@ binds {
     Mod+Delete { spawn-sh "qs -c noctalia-shell ipc call sessionMenu toggle"; }
     Mod+Return { spawn-sh "qs -c noctalia-shell ipc call controlCenter toggle"; }
     Mod+S { spawn-sh "qs -c noctalia-shell ipc call settings toggle"; }
-    Super+ALT+L { spawn-sh "qs -c noctalia-shell ipc call lockScreen lock"; }
+    Mod+L { spawn-sh "qs -c noctalia-shell ipc call lockScreen lock"; }
     //Mod+Space { switch-layout "next"; }
     //Mod+A hotkey-overlay-title="Run an Application: fuzzel" { spawn "fuzzel"; }
     //Super+Alt+L hotkey-overlay-title="Lock the Screen: swaylock" { spawn "swaylock"; }
@@ -410,7 +410,9 @@ binds {
     // or do a four-finger swipe up on a touchpad.
     Mod+O repeat=false { toggle-overview; }
 
-    Mod+Q repeat=false { close-window; }
+    Mod+W repeat=false { close-window; }
+    //Mod+Q repeat=false { close-window; }
+
 
     Mod+Left  { focus-column-left; }
     Mod+Down  { focus-window-down; }
@@ -492,8 +494,8 @@ binds {
     // To avoid scrolling through workspaces really fast, you can use
     // the cooldown-ms property. The bind will be rate-limited to this value.
     // You can set a cooldown on any bind, but it's most useful for the wheel.
-    Mod+WheelScrollDown      cooldown-ms=150 { focus-workspace-down; }
-    Mod+WheelScrollUp        cooldown-ms=150 { focus-workspace-up; }
+    Mod+Shift+WheelScrollDown cooldown-ms=150 { focus-workspace-down; }
+    Mod+Shift+WheelScrollUp cooldown-ms=150 { focus-workspace-up; }
     Mod+Ctrl+WheelScrollDown cooldown-ms=150 { move-column-to-workspace-down; }
     Mod+Ctrl+WheelScrollUp   cooldown-ms=150 { move-column-to-workspace-up; }
 
@@ -504,8 +506,8 @@ binds {
 
     // Usually scrolling up and down with Shift in applications results in
     // horizontal scrolling; these binds replicate that.
-    Mod+Shift+WheelScrollDown      { focus-column-right; }
-    Mod+Shift+WheelScrollUp        { focus-column-left; }
+    Mod+WheelScrollDown { focus-column-right; }
+    Mod+WheelScrollUp { focus-column-left; } 
     Mod+Ctrl+Shift+WheelScrollDown { move-column-right; }
     Mod+Ctrl+Shift+WheelScrollUp   { move-column-left; }
 
@@ -601,7 +603,7 @@ binds {
     // Toggle tabbed column display mode.
     // Windows in this column will appear as vertical tabs,
     // rather than stacked on top of each other.
-    Mod+W { toggle-column-tabbed-display; }
+    //Mod+W { toggle-column-tabbed-display; }
 
     // Actions to switch layouts.
     // Note: if you uncomment these, make sure you do NOT have

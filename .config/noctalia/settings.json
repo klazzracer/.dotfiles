@@ -9,6 +9,7 @@
         "density": "default",
         "enableClipPreview": true,
         "enableClipboardHistory": false,
+        "enableSessionSearch": true,
         "enableSettingsSearch": true,
         "enableWindowsSearch": true,
         "iconMode": "native",
@@ -51,6 +52,7 @@
         "marginHorizontal": 4,
         "marginVertical": 4,
         "monitors": [
+            "DP-1"
         ],
         "outerCorners": true,
         "position": "top",
@@ -63,12 +65,12 @@
             "center": [
                 {
                     "clockColor": "none",
-                    "customFont": "",
-                    "formatHorizontal": "HH:mm ddd, MMM dd",
+                    "customFont": "JetBrainsMono NFP",
+                    "formatHorizontal": "yyyy-MM-dd /// HH:mm:ss",
                     "formatVertical": "HH mm - dd MM",
                     "id": "Clock",
-                    "tooltipFormat": "HH:mm ddd, MMM dd",
-                    "useCustomFont": false
+                    "tooltipFormat": "yyyy-MM-dd HH:mm:ss",
+                    "useCustomFont": true
                 }
             ],
             "left": [
@@ -300,9 +302,51 @@
         }
     },
     "desktopWidgets": {
-        "enabled": false,
-        "gridSnap": false,
+        "enabled": true,
+        "gridSnap": true,
         "monitorWidgets": [
+            {
+                "name": "DP-1",
+                "widgets": [
+                    {
+                        "clockColor": "none",
+                        "clockStyle": "digital",
+                        "customFont": "",
+                        "format": "HH:mm\\nd MMMM yyyy",
+                        "id": "Clock",
+                        "roundedCorners": true,
+                        "scale": 1.2739854634706937,
+                        "showBackground": true,
+                        "useCustomFont": false,
+                        "x": 1200,
+                        "y": 240
+                    },
+                    {
+                        "hideMode": "visible",
+                        "id": "MediaPlayer",
+                        "roundedCorners": true,
+                        "scale": 1.307259993512467,
+                        "showAlbumArt": true,
+                        "showBackground": true,
+                        "showButtons": true,
+                        "showVisualizer": true,
+                        "visualizerType": "linear",
+                        "x": 1040,
+                        "y": 1040
+                    },
+                    {
+                        "diskPath": "/",
+                        "id": "SystemStat",
+                        "layout": "bottom",
+                        "roundedCorners": true,
+                        "scale": 0.9301363768796416,
+                        "showBackground": true,
+                        "statType": "CPU",
+                        "x": 0,
+                        "y": 40
+                    }
+                ]
+            }
         ]
     },
     "dock": {
@@ -329,13 +373,13 @@
         "animationDisabled": false,
         "animationSpeed": 1,
         "autoStartAuth": false,
-        "avatarImage": "/home/sdelage/.face",
+        "avatarImage": "/home/sdelage/SynologyDrive/Images/Profiles/d3l8s0g-ffaebf8b-93e1-4a8f-b567-039480528fdd.png",
         "boxRadiusRatio": 1,
         "clockFormat": "hh\\nmm",
         "clockStyle": "custom",
         "compactLockScreen": false,
         "dimmerOpacity": 0.2,
-        "enableLockScreenCountdown": true,
+        "enableLockScreenCountdown": false,
         "enableShadows": true,
         "forceBlackScreenCorners": false,
         "iRadiusRatio": 1,
@@ -361,10 +405,11 @@
         },
         "language": "",
         "lockOnSuspend": true,
-        "lockScreenAnimations": false,
+        "lockScreenAnimations": true,
         "lockScreenBlur": 0,
         "lockScreenCountdownDuration": 10000,
         "lockScreenMonitors": [
+            "DP-1"
         ],
         "lockScreenTint": 0,
         "radiusRatio": 1,
@@ -376,7 +421,7 @@
         "showChangelogOnStartup": true,
         "showHibernateOnLockScreen": false,
         "showScreenCorners": false,
-        "showSessionButtonsOnLockScreen": true,
+        "showSessionButtonsOnLockScreen": false,
         "telemetryEnabled": true
     },
     "hooks": {
@@ -392,7 +437,7 @@
     },
     "location": {
         "analogClockInCalendar": false,
-        "firstDayOfWeek": -1,
+        "firstDayOfWeek": 0,
         "hideWeatherCityName": false,
         "hideWeatherTimezone": false,
         "name": "Sherbrooke",
@@ -410,7 +455,7 @@
         "bluetoothRssiPollIntervalMs": 10000,
         "bluetoothRssiPollingEnabled": false,
         "wifiDetailsViewMode": "grid",
-        "wifiEnabled": true
+        "wifiEnabled": false
     },
     "nightLight": {
         "autoSchedule": true,
@@ -423,7 +468,7 @@
     },
     "notifications": {
         "backgroundOpacity": 1,
-        "criticalUrgencyDuration": 15,
+        "criticalUrgencyDuration": 5,
         "enableBatteryToast": true,
         "enableKeyboardLayoutToast": true,
         "enableMediaToast": false,
@@ -431,8 +476,9 @@
         "location": "top_right",
         "lowUrgencyDuration": 3,
         "monitors": [
+            "DP-1"
         ],
-        "normalUrgencyDuration": 8,
+        "normalUrgencyDuration": 5,
         "overlayLayer": true,
         "respectExpireTimeout": false,
         "saveToHistory": {
@@ -479,48 +525,47 @@
                 "command": "",
                 "countdownEnabled": true,
                 "enabled": true,
-                "keybind": ""
+                "keybind": "1"
             },
             {
                 "action": "suspend",
                 "command": "",
                 "countdownEnabled": true,
                 "enabled": true,
-                "keybind": ""
+                "keybind": "2"
             },
             {
                 "action": "hibernate",
                 "command": "",
                 "countdownEnabled": true,
                 "enabled": true,
-                "keybind": ""
+                "keybind": "3"
             },
             {
                 "action": "reboot",
                 "command": "",
                 "countdownEnabled": true,
                 "enabled": true,
-                "keybind": ""
+                "keybind": "4"
             },
             {
                 "action": "logout",
                 "command": "",
                 "countdownEnabled": true,
                 "enabled": true,
-                "keybind": ""
+                "keybind": "5"
             },
             {
                 "action": "shutdown",
                 "command": "",
                 "countdownEnabled": true,
                 "enabled": true,
-                "keybind": ""
+                "keybind": "6"
             }
         ],
-        "showHeader": true,
-        "showNumberLabels": true
+        "showHeader": true
     },
-    "settingsVersion": 51,
+    "settingsVersion": 53,
     "systemMonitor": {
         "batteryCriticalThreshold": 5,
         "batteryWarningThreshold": 20,
@@ -572,9 +617,11 @@
     },
     "wallpaper": {
         "automationEnabled": true,
-        "directory": "/home/sdelage/Pictures/Wallpaper-Bank",
-        "enableMultiMonitorDirectories": false,
+        "directory": "/home/sdelage/SynologyDrive/Images/Wallpaper-Bank/wallpapers",
+        "enableMultiMonitorDirectories": true,
         "enabled": true,
+        "favorites": [
+        ],
         "fillColor": "#000000",
         "fillMode": "crop",
         "hideWallpaperFilenames": false,
@@ -587,6 +634,7 @@
         "randomIntervalSec": 3600,
         "setWallpaperOnAllMonitors": true,
         "showHiddenFiles": false,
+        "skipStartupTransition": false,
         "solidColor": "#1a1a2e",
         "sortOrder": "name",
         "transitionDuration": 1500,
