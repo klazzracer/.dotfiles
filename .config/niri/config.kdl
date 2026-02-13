@@ -374,7 +374,7 @@ binds {
     Mod+Return { spawn-sh "qs -c noctalia-shell ipc call controlCenter toggle"; }
     Mod+S { spawn-sh "qs -c noctalia-shell ipc call settings toggle"; }
     Mod+L { spawn-sh "qs -c noctalia-shell ipc call lockScreen lock"; }
-    //Mod+Space { switch-layout "next"; }
+    Mod+ALT+N { spawn-sh "qs -c noctalia-shell ipc call wallpaper random"; } 
     //Mod+A hotkey-overlay-title="Run an Application: fuzzel" { spawn "fuzzel"; }
     //Super+Alt+L hotkey-overlay-title="Lock the Screen: swaylock" { spawn "swaylock"; }
 

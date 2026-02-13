@@ -9,7 +9,6 @@
         "density": "default",
         "enableClipPreview": true,
         "enableClipboardHistory": false,
-        "enableSessionSearch": true,
         "enableSettingsSearch": true,
         "enableWindowsSearch": true,
         "iconMode": "native",
@@ -52,7 +51,8 @@
         "marginHorizontal": 4,
         "marginVertical": 4,
         "monitors": [
-            "DP-1"
+            "DP-1",
+            "eDP-1"
         ],
         "outerCorners": true,
         "position": "top",
@@ -160,6 +160,12 @@
                     "id": "Tray",
                     "pinned": [
                     ]
+                },
+                {
+                    "displayMode": "onhover",
+                    "iconColor": "primary",
+                    "id": "VPN",
+                    "textColor": "none"
                 },
                 {
                     "hideWhenZero": false,
@@ -346,6 +352,21 @@
                         "y": 40
                     }
                 ]
+            },
+            {
+                "name": "eDP-1",
+                "widgets": [
+                    {
+                        "diskPath": "/",
+                        "id": "SystemStat",
+                        "layout": "bottom",
+                        "roundedCorners": true,
+                        "showBackground": false,
+                        "statType": "CPU",
+                        "x": 0,
+                        "y": 48
+                    }
+                ]
             }
         ]
     },
@@ -455,7 +476,7 @@
         "bluetoothRssiPollIntervalMs": 10000,
         "bluetoothRssiPollingEnabled": false,
         "wifiDetailsViewMode": "grid",
-        "wifiEnabled": false
+        "wifiEnabled": true
     },
     "nightLight": {
         "autoSchedule": true,
@@ -515,7 +536,7 @@
     },
     "sessionMenu": {
         "countdownDuration": 10000,
-        "enableCountdown": true,
+        "enableCountdown": false,
         "largeButtonsLayout": "single-row",
         "largeButtonsStyle": true,
         "position": "center",
@@ -563,9 +584,10 @@
                 "keybind": "6"
             }
         ],
-        "showHeader": true
+        "showHeader": true,
+        "showNumberLabels": true
     },
-    "settingsVersion": 53,
+    "settingsVersion": 51,
     "systemMonitor": {
         "batteryCriticalThreshold": 5,
         "batteryWarningThreshold": 20,
@@ -617,11 +639,9 @@
     },
     "wallpaper": {
         "automationEnabled": true,
-        "directory": "/home/sdelage/SynologyDrive/Images/Wallpaper-Bank/wallpapers",
+        "directory": "/home/sdelage/Pictures/Wallpaper-Bank/wallpapers",
         "enableMultiMonitorDirectories": true,
         "enabled": true,
-        "favorites": [
-        ],
         "fillColor": "#000000",
         "fillMode": "crop",
         "hideWallpaperFilenames": false,
@@ -631,10 +651,9 @@
         "overviewEnabled": false,
         "overviewTint": 0.6,
         "panelPosition": "follow_bar",
-        "randomIntervalSec": 3600,
+        "randomIntervalSec": 1800,
         "setWallpaperOnAllMonitors": true,
         "showHiddenFiles": false,
-        "skipStartupTransition": false,
         "solidColor": "#1a1a2e",
         "sortOrder": "name",
         "transitionDuration": 1500,
@@ -642,7 +661,7 @@
         "transitionType": "random",
         "useSolidColor": false,
         "useWallhaven": false,
-        "viewMode": "recursive",
+        "viewMode": "single",
         "wallhavenApiKey": "",
         "wallhavenCategories": "111",
         "wallhavenOrder": "desc",
