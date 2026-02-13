@@ -14,8 +14,9 @@ input {
             // For more information, see xkeyboard-config(7).
 
             // For example:
-            // layout "us,ru"
-            // options "grp:win_space_toggle,compose:ralt,ctrl:nocaps"
+            layout "us,ca"
+            // track-layout "global"
+	    options "grp:win_space_toggle,compose:ralt,ctrl:nocaps"
 
             // If this section is empty, niri will fetch xkb settings
             // from org.freedesktop.locale1. You can control these using
@@ -370,9 +371,10 @@ binds {
     Mod+T hotkey-overlay-title="Open a Terminal: alacritty" { spawn "kgx"; }
     Mod+A { spawn-sh "qs -c noctalia-shell ipc call launcher toggle"; }
     Mod+Delete { spawn-sh "qs -c noctalia-shell ipc call sessionMenu toggle"; }
-    Mod+Space { spawn-sh "qs -c noctalia-shell ipc call controlCenter toggle"; }
+    Mod+Return { spawn-sh "qs -c noctalia-shell ipc call controlCenter toggle"; }
     Mod+S { spawn-sh "qs -c noctalia-shell ipc call settings toggle"; }
     Super+ALT+L { spawn-sh "qs -c noctalia-shell ipc call lockScreen lock"; }
+    //Mod+Space { switch-layout "next"; }
     //Mod+A hotkey-overlay-title="Run an Application: fuzzel" { spawn "fuzzel"; }
     //Super+Alt+L hotkey-overlay-title="Lock the Screen: swaylock" { spawn "swaylock"; }
 
