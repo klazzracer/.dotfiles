@@ -89,6 +89,24 @@ output "HDMI-A-1" {
 
 }
 
+// Set the overview wallpaper on the backdrop.
+layer-rule {
+  match namespace="^noctalia-overview*"
+  place-within-backdrop true
+}
+
+window-rule {
+  // Rounded corners for a modern look.
+  geometry-corner-radius 20
+
+  // Clips window contents to the rounded corner boundaries.
+  clip-to-geometry true
+}
+
+debug {
+  // Allows notification actions and window activation from Noctalia.
+  honor-xdg-activation-with-invalid-serial
+}
 
 // You can configure outputs by their name, which you can find
 // by running `niri msg outputs` while inside a niri instance.
@@ -291,7 +309,7 @@ layout {
 // This line starts waybar, a commonly used bar for Wayland compositors.
 //spawn-at-startup "waybar"
 spawn-at-startup "env" "QT_QPA_PLATFORMTHEME=gtk3" "qs" "-c" "noctalia-shell"
-//spawn-at-startup "qs" "-c" "noctalia-shell"
+//spawn-at-startup "QT_QPA_PLATFORMTHEME=gtk3 qs -c noctalia-shell"
 spawn-at-startup "/usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1"
 
 // To run a shell command (with variables, pipes, etc.), use spawn-sh-at-startup:
@@ -396,14 +414,14 @@ binds {
 
     // Suggested binds for running programs: terminal, app launcher, screen locker.
     Mod+E {spawn "nautilus";}
-    Mod+T hotkey-overlay-title="Open a Terminal: Alacritty" { spawn "alacritty"; }
+    Mod+T hotkey-overlay-title="Open a Terminal" { spawn "ghostty"; }
     //Mod+T hotkey-overlay-title="Open a Terminal: Kitty" { spawn "kitty"; }
     Mod+A { spawn-sh "qs -c noctalia-shell ipc call launcher toggle"; }
     Mod+Delete { spawn-sh "qs -c noctalia-shell ipc call sessionMenu toggle"; }
     Mod+Return { spawn-sh "qs -c noctalia-shell ipc call controlCenter toggle"; }
     Mod+S { spawn-sh "qs -c noctalia-shell ipc call settings toggle"; }
     Mod+L { spawn-sh "qs -c noctalia-shell ipc call lockScreen lock"; }
-    Mod+ALT+N { spawn-sh "qs -c noctalia-shell ipc call wallpaper random"; } 
+    Mod+ALT+N { spawn-sh "qs -c noctalia-shell ipc call wallpaper random all"; } 
     //Mod+A hotkey-overlay-title="Run an Application: fuzzel" { spawn "fuzzel"; }
     //Super+Alt+L hotkey-overlay-title="Lock the Screen: swaylock" { spawn "swaylock"; }
 
@@ -437,7 +455,8 @@ binds {
     // Open/close the Overview: a zoomed-out view of workspaces and windows.
     // You can also move the mouse into the top-left hot corner,
     // or do a four-finger swipe up on a touchpad.
-    Mod+O repeat=false { toggle-overview; }
+    //Mod+O repeat=false { toggle-overview; }
+    Mod+Tab repeat=false { toggle-overview; }
 
     Mod+W repeat=false { close-window; }
     //Mod+Q repeat=false { close-window; }
@@ -668,3 +687,6 @@ binds {
     // moving the mouse or pressing any other key.
     //Mod+Shift+P { power-off-monitors; }
 }
+
+include "./noctalia.kdl"
+
