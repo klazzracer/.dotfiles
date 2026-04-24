@@ -1,0 +1,20 @@
+{
+  "colorHistory": [
+    "#1F3760"
+  ],
+  "paletteColors": [],
+  "installedLangs": [
+    "eng"
+  ],
+  "transAvailable": true,
+  "selectedOcrLang": "eng",
+  "detectedRecorder": "",
+  "stateIsRunning": false,
+  "stateActiveTool": "",
+  "stateMirrorVisible": false,
+  "resultHex": "#1F3760",
+  "resultRgb": "rgb(31, 55, 96)",
+  "resultHsv": "hsv(218, 68%, 38%)",
+  "resultHsl": "hsl(218, 51%, 25%)",
+  "colorCapturePath": "/tmp/screen-toolkit-colorpicker.png"
+}

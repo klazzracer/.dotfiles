@@ -63,13 +63,13 @@
             "DP-1",
             "eDP-1"
         ],
-        "mouseWheelAction": "none",
+        "mouseWheelAction": "content",
         "mouseWheelWrap": true,
         "outerCorners": true,
         "position": "top",
         "reverseScroll": false,
         "rightClickAction": "controlCenter",
-        "rightClickCommand": "",
+        "rightClickCommand": "qs -c noctalia-shell ipc call plugin:screen-toolkit toggle",
         "rightClickFollowMouse": true,
         "screenOverrides": [
         ],
@@ -81,6 +81,21 @@
         "widgets": {
             "center": [
                 {
+                    "defaultSettings": {
+                        "autoHeight": true,
+                        "cheatsheetData": [
+                        ],
+                        "columnCount": 3,
+                        "detectedCompositor": "",
+                        "hyprlandConfigPath": "~/.config/hypr/hyprland.conf",
+                        "modKeyVariable": "$mod",
+                        "niriConfigPath": "~/.config/niri/config.kdl",
+                        "windowHeight": 0,
+                        "windowWidth": 1400
+                    },
+                    "id": "plugin:keybind-cheatsheet"
+                },
+                {
                     "clockColor": "none",
                     "customFont": "JetBrainsMono NFP",
                     "formatHorizontal": "yyyy-MM-dd /// HH:mm:ss",
@@ -88,6 +103,11 @@
                     "id": "Clock",
                     "tooltipFormat": "yyyy-MM-dd HH:mm:ss",
                     "useCustomFont": true
+                },
+                {
+                    "iconColor": "tertiary",
+                    "id": "KeepAwake",
+                    "textColor": "error"
                 }
             ],
             "left": [
@@ -148,18 +168,27 @@
                 },
                 {
                     "defaultSettings": {
-                        "autoHeight": true,
-                        "cheatsheetData": [
-                        ],
-                        "columnCount": 3,
-                        "detectedCompositor": "",
-                        "hyprlandConfigPath": "~/.config/hypr/hyprland.conf",
-                        "modKeyVariable": "$mod",
-                        "niriConfigPath": "~/.config/niri/config.kdl",
-                        "windowHeight": 0,
-                        "windowWidth": 1400
+                        "githubGistId": "",
+                        "githubToken": "",
+                        "notes": "[]",
+                        "syncEnabled": false
                     },
-                    "id": "plugin:keybind-cheatsheet"
+                    "id": "plugin:sticky-notes"
+                },
+                {
+                    "defaultSettings": {
+                        "colorHistory": [
+                        ],
+                        "detectedRecorder": "",
+                        "installedLangs": [
+                            "eng"
+                        ],
+                        "paletteColors": [
+                        ],
+                        "selectedOcrLang": "eng",
+                        "transAvailable": false
+                    },
+                    "id": "plugin:screen-toolkit"
                 },
                 {
                     "displayMode": "onhover",
@@ -197,15 +226,6 @@
                     "iconColor": "none",
                     "id": "Brightness",
                     "textColor": "none"
-                },
-                {
-                    "colorizeDistroLogo": false,
-                    "colorizeSystemIcon": "none",
-                    "customIconPath": "",
-                    "enableColorization": false,
-                    "icon": "noctalia",
-                    "id": "ControlCenter",
-                    "useDistroLogo": false
                 }
             ]
         }
@@ -239,9 +259,10 @@
         "manualSunrise": "06:30",
         "manualSunset": "18:30",
         "monitorForColors": "",
-        "predefinedScheme": "Eldritch",
+        "predefinedScheme": "Gruvbox",
         "schedulingMode": "off",
-        "useWallpaperColors": false
+        "syncGsettings": true,
+        "useWallpaperColors": true
     },
     "controlCenter": {
         "cards": [
@@ -415,7 +436,7 @@
             "DP-1"
         ],
         "lockScreenTint": 0,
-        "passwordChars": false,
+        "passwordChars": true,
         "radiusRatio": 1,
         "reverseScroll": false,
         "scaleRatio": 1,
@@ -427,6 +448,7 @@
         "showHibernateOnLockScreen": false,
         "showScreenCorners": false,
         "showSessionButtonsOnLockScreen": false,
+        "smoothScrollEnabled": true,
         "telemetryEnabled": true
     },
     "hooks": {
@@ -444,7 +466,7 @@
     "idle": {
         "customCommands": "[]",
         "enabled": true,
-        "fadeDuration": 5,
+        "fadeDuration": 15,
         "lockCommand": "",
         "lockTimeout": 660,
         "resumeLockCommand": "",
@@ -457,6 +479,7 @@
     },
     "location": {
         "analogClockInCalendar": false,
+        "autoLocate": false,
         "firstDayOfWeek": 0,
         "hideWeatherCityName": false,
         "hideWeatherTimezone": false,
@@ -467,10 +490,10 @@
         "use12hourFormat": false,
         "useFahrenheit": false,
         "weatherEnabled": true,
-        "weatherShowEffects": true
+        "weatherShowEffects": true,
+        "weatherTaliaMascotAlways": false
     },
     "network": {
-        "airplaneModeEnabled": false,
         "bluetoothAutoConnect": true,
         "bluetoothDetailsViewMode": "grid",
         "bluetoothHideUnnamedDevices": false,
@@ -651,10 +674,6 @@
             },
             {
                 "enabled": true,
-                "id": "code"
-            },
-            {
-                "enabled": true,
                 "id": "steam"
             },
             {
@@ -688,6 +707,7 @@
         "fillColor": "#000000",
         "fillMode": "crop",
         "hideWallpaperFilenames": false,
+        "linkLightAndDarkWallpapers": true,
         "monitorDirectories": [
             {
                 "directory": "/home/sdelage/SynologyDrive/Images/Wallpaper-Bank",

@@ -47,25 +47,25 @@ ColumnLayout {
     NComboBox {
         enabled: root.enabled
         Layout.fillWidth: true
-        label:       root.pluginApi?.tr("settings.advanced.profile.label")       || "Profile"
-        description: root.pluginApi?.tr("settings.advanced.profile.description") || "The profile that mpv uses. Use fast for better performance.";
+        label:       root.pluginApi?.tr("settings.advanced.profile.label")
+        description: root.pluginApi?.tr("settings.advanced.profile.description")
         defaultValue: "default"
         model: [
             {
                 "key": "default",
-                "name": root.pluginApi?.tr("settings.advanced.profile.default") || "Default"
+                "name": root.pluginApi?.tr("settings.advanced.profile.default")
             },
             {
                 "key": "fast",
-                "name": root.pluginApi?.tr("settings.advanced.profile.fast") || "Fast"
+                "name": root.pluginApi?.tr("settings.advanced.profile.fast")
             },
             {
                 "key": "high-quality",
-                "name": root.pluginApi?.tr("settings.advanced.profile.high_quality") || "High Quality"
+                "name": root.pluginApi?.tr("settings.advanced.profile.high_quality")
             },
             {
                 "key": "low-latency",
-                "name": root.pluginApi?.tr("settings.advanced.profile.low_latency") || "Low Latency"
+                "name": root.pluginApi?.tr("settings.advanced.profile.low_latency")
             }
         ]
         currentKey: root.profile
@@ -76,8 +76,8 @@ ColumnLayout {
     NToggle {
         enabled: root.enabled
         Layout.fillWidth: true
-        label:       root.pluginApi?.tr("settings.advanced.hardware_acceleration.label")       || "Hardware Acceleration"
-        description: root.pluginApi?.tr("settings.advanced.hardware_acceleration.description") || "Offloads video decoding from cpu to gpu / dedicated hardware.";
+        label:       root.pluginApi?.tr("settings.advanced.hardware_acceleration.label")
+        description: root.pluginApi?.tr("settings.advanced.hardware_acceleration.description")
         checked: root.hardwareAcceleration
         onToggled: checked => root.hardwareAcceleration = checked
         defaultValue: false
@@ -87,9 +87,9 @@ ColumnLayout {
     NTextInput {
         enabled: root.enabled
         Layout.fillWidth: true
-        label:           root.pluginApi?.tr("settings.advanced.mpv_socket.label")             || "Mpvpaper Socket"
-        description:     root.pluginApi?.tr("settings.advanced.mpv_socket.description")       || "The mpvpaper socket that noctalia connects to"
-        placeholderText: root.pluginApi?.tr("settings.advanced.mpv_socket.input_placeholder") || "Example: /tmp/mpv-socket"
+        label:           root.pluginApi?.tr("settings.advanced.mpv_socket.label")
+        description:     root.pluginApi?.tr("settings.advanced.mpv_socket.description")
+        placeholderText: root.pluginApi?.tr("settings.advanced.mpv_socket.input_placeholder")
         text: root.mpvSocket
         onTextChanged: root.mpvSocket = text
     }

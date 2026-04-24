@@ -254,7 +254,7 @@ Item {
             if (exitCode === 0) {
                 root.mpvpaperExists = true;
             } else {
-                ToastService.showError(root.pluginApi?.tr("main.no_backend_found", {"backend": "Mpvpaper"}) || "Mpvpaper wasn't found!");
+                ToastService.showError(root.pluginApi?.tr("main.no_backend_found", {"backend": "Mpvpaper"}));
             }
         }
     }

@@ -71,7 +71,7 @@ ColumnLayout {
             spacing: Style.marginS
 
             NText {
-                text: root.pluginApi?.tr("panel.loading") || "Loading..."
+                text: root.pluginApi?.tr("panel.loading")
                 Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
                 pointSize: Style.fontSizeL
                 font.weight: Font.Bold

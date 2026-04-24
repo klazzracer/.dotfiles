@@ -57,20 +57,20 @@ ColumnLayout {
 
         NLabel {
             enabled: root.enabled
-            label:       root.pluginApi?.tr("settings.general.select_wallpaper.title.label")       || "Select Wallpaper"
-            description: root.pluginApi?.tr("settings.general.select_wallpaper.title.description") || "Choose the current video wallpaper playing."
+            label:       root.pluginApi?.tr("settings.general.select_wallpaper.title.label")
+            description: root.pluginApi?.tr("settings.general.select_wallpaper.title.description")
         }
 
         NIconButton {
             enabled: root.enabled
             icon: "wallpaper-selector"
-            tooltipText: root.pluginApi?.tr("settings.general.select_wallpaper.icon_button.tooltip") || "Select current wallpaper"
+            tooltipText: root.pluginApi?.tr("settings.general.select_wallpaper.icon_button.tooltip")
             onClicked: currentWallpaperPicker.openFilePicker()
         }
 
         NFilePicker {
             id: currentWallpaperPicker
-            title: root.pluginApi?.tr("settings.general.select_wallpaper.file_picker.title") || "Choose current wallpaper"
+            title: root.pluginApi?.tr("settings.general.select_wallpaper.file_picker.title")
             initialPath: root.wallpapersFolder
             selectionMode: "files"
 
@@ -94,8 +94,8 @@ ColumnLayout {
         value: _value
         stepSize: (Settings.data.audio.volumeStep / 100.0)
         text: `${_value * 100.0}%`
-        label:       root.pluginApi?.tr("settings.general.volume.label")       || "Volume"
-        description: root.pluginApi?.tr("settings.general.volume.description") || "The current volume of the video playing."
+        label:       root.pluginApi?.tr("settings.general.volume.label")
+        description: root.pluginApi?.tr("settings.general.volume.description")
         onMoved: value => _value = value
         onPressedChanged: (pressed, value) => {
             if(root.pluginApi == null) {

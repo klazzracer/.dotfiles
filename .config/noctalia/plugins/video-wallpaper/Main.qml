@@ -120,7 +120,7 @@ Item {
                 onStatusChanged: {
                     // Most likely if status is error and active backend is qt6-multimedia, is that qt6-multimedia wasn't found.
                     if (status === Loader.Error && screenItem.activeBackend === "qt6-multimedia") {
-                        ToastService.showError(root.pluginApi?.tr("main.no_backend_found", {"backend": "Qt6-multimedia"}) || "Qt6-multimedia wasn't found!");
+                        ToastService.showError(root.pluginApi?.tr("main.no_backend_found", {"backend": "Qt6-multimedia"}));
                     }
                 }
             }

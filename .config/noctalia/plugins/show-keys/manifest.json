@@ -1,7 +1,7 @@
 {
     "id": "show-keys",
     "name": "Show Keys",
-    "version": "1.0.1",
+    "version": "1.0.2",
     "minNoctaliaVersion": "3.6.0",
     "author": "onez3r0",
     "license": "MIT",

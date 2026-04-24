@@ -58,16 +58,16 @@ ColumnLayout {
     ***************************/
     // Active toggle
     NToggle {
-        label:       root.pluginApi?.tr("settings.toggle.label")       || "Enable video wallpapers"
-        description: root.pluginApi?.tr("settings.toggle.description") || "Choose your preferred backend to render the videos with, in the box below."
+        label:       root.pluginApi?.tr("settings.toggle.label")
+        description: root.pluginApi?.tr("settings.toggle.description")
         checked: root.enabled
         onToggled: checked => root.enabled = checked
     }
 
     NToggle {
         visible: Quickshell.screens.length > 1
-        label:       root.pluginApi?.tr("settings.monitor_specific.label")       || "Monitor specific settings"
-        description: root.pluginApi?.tr("settings.monitor_specific.description") || "Choose if you want some of the settings to apply to specific monitors. (Only available for multi-monitor setup)"
+        label:       root.pluginApi?.tr("settings.monitor_specific.label")
+        description: root.pluginApi?.tr("settings.monitor_specific.description")
         checked: root.monitorSpecific
         onToggled: checked => root.monitorSpecific = checked
     }
@@ -75,17 +75,17 @@ ColumnLayout {
     NComboBox {
         enabled: root.enabled
         Layout.fillWidth: true
-        label:       root.pluginApi?.tr("settings.backend.label")       || "Active backend"
-        description: root.pluginApi?.tr("settings.backend.description") || "What to use to render the video wallpapers."
+        label:       root.pluginApi?.tr("settings.backend.label")
+        description: root.pluginApi?.tr("settings.backend.description")
         defaultValue: "qt6-multimedia"
         model: [
             {
                 "key": "qt6-multimedia",
-                "name": root.pluginApi?.tr("settings.backend.qt6_multimedia") || "Qt6 Multimedia"
+                "name": root.pluginApi?.tr("settings.backend.qt6_multimedia")
             },
             {
                 "key": "mpvpaper",
-                "name": root.pluginApi?.tr("settings.backend.mpvpaper") || "Mpvpaper"
+                "name": root.pluginApi?.tr("settings.backend.mpvpaper")
             }
         ]
         currentKey: root.activeBackend
@@ -98,8 +98,8 @@ ColumnLayout {
 
         NLabel {
             enabled: root.enabled
-            label:       root.pluginApi?.tr("settings.general.wallpapers_folder.title.label")       || "Wallpapers Folder"
-            description: root.pluginApi?.tr("settings.general.wallpapers_folder.title.description") || "The folder that contains all the wallpapers, useful when using random wallpaper"
+            label:       root.pluginApi?.tr("settings.general.wallpapers_folder.title.label")
+            description: root.pluginApi?.tr("settings.general.wallpapers_folder.title.description")
         }
 
         RowLayout {
@@ -107,7 +107,7 @@ ColumnLayout {
 
             NTextInput {
                 enabled: root.enabled
-                placeholderText: root.pluginApi?.tr("settings.general.wallpapers_folder.text_input.placeholder") || "/path/to/folder/with/wallpapers"
+                placeholderText: root.pluginApi?.tr("settings.general.wallpapers_folder.text_input.placeholder")
                 text: root.wallpapersFolder
                 onTextChanged: root.wallpapersFolder = text
             }
@@ -115,13 +115,13 @@ ColumnLayout {
             NIconButton {
                 enabled: root.enabled
                 icon: "wallpaper-selector"
-                tooltipText: root.pluginApi?.tr("settings.general.wallpapers_folder.icon_button.tooltip") || "Select wallpapers folder"
+                tooltipText: root.pluginApi?.tr("settings.general.wallpapers_folder.icon_button.tooltip")
                 onClicked: wallpapersFolderPicker.openFilePicker()
             }
 
             NFilePicker {
                 id: wallpapersFolderPicker
-                title: root.pluginApi?.tr("settings.general.wallpapers_folder.file_picker.title") || "Choose wallpapers folder"
+                title: root.pluginApi?.tr("settings.general.wallpapers_folder.file_picker.title")
                 initialPath: root.wallpapersFolder
                 selectionMode: "folders"
 
@@ -160,19 +160,19 @@ ColumnLayout {
 
         NTabButton {
             enabled: root.enabled
-            text: pluginApi?.tr("settings.tab_bar.general") || "General"
+            text: pluginApi?.tr("settings.tab_bar.general")
             tabIndex: 0
             checked: tabBar.currentIndex === 0
         }
         NTabButton {
             enabled: root.enabled
-            text: pluginApi?.tr("settings.tab_bar.automation") || "Automation"
+            text: pluginApi?.tr("settings.tab_bar.automation")
             tabIndex: 1
             checked: tabBar.currentIndex === 1
         }
         NTabButton {
             enabled: root.enabled
-            text: pluginApi?.tr("settings.tab_bar.advanced") || "Advanced"
+            text: pluginApi?.tr("settings.tab_bar.advanced")
             tabIndex: 2
             checked: tabBar.currentIndex === 2
         }
