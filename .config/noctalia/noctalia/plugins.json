@@ -7,8 +7,36 @@
         }
     ],
     "states": {
-        "mangowc-layout-switcher": {
-            "enabled": false,
+        "keybind-cheatsheet": {
+            "enabled": true,
+            "sourceUrl": "https://github.com/noctalia-dev/noctalia-plugins"
+        },
+        "network-manager-vpn": {
+            "enabled": true,
+            "sourceUrl": "https://github.com/noctalia-dev/noctalia-plugins"
+        },
+        "polkit-agent": {
+            "enabled": true,
+            "sourceUrl": "https://github.com/noctalia-dev/noctalia-plugins"
+        },
+        "screen-toolkit": {
+            "enabled": true,
+            "sourceUrl": "https://github.com/noctalia-dev/noctalia-plugins"
+        },
+        "show-keys": {
+            "enabled": true,
+            "sourceUrl": "https://github.com/noctalia-dev/noctalia-plugins"
+        },
+        "sticky-notes": {
+            "enabled": true,
+            "sourceUrl": "https://github.com/noctalia-dev/noctalia-plugins"
+        },
+        "sys-info-widget": {
+            "enabled": true,
+            "sourceUrl": "https://github.com/noctalia-dev/noctalia-plugins"
+        },
+        "video-wallpaper": {
+            "enabled": true,
             "sourceUrl": "https://github.com/noctalia-dev/noctalia-plugins"
         }
     },
