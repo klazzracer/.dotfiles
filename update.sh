@@ -153,47 +153,31 @@ banner() {
     printf '  %sQue veux-tu faire ?%s\n\n' "$C_TITLE" "$C_OFF"
 }
 
-# labels affiches, alignes avec MENU_KEYS / MENU_FN
-MENU_KEYS=("--copy" "--upgrade" "--restore" "--list" "Quitter")
-MENU_FN=("cmd_copy" "cmd_upgrade" "cmd_restore" "cmd_list" "__quit__")
-MENU_DESC=(
-    "Sauvegarder   \$HOME  ->  depot git"
-    "Deployer      depot git  ->  \$HOME   (snapshot avant)"
-    "Restaurer     annuler le dernier --upgrade (rollback)"
-    "Etat          lister les configs et le dernier snapshot"
-    "Sortir de l'application"
-)
-
-draw_menu() {
-    local sel="$1" i
-    for i in "${!MENU_KEYS[@]}"; do
-        if (( i == sel )); then
-            printf '   %s ▶ %-10s %s %s\n' \
-                "$C_SEL" "${MENU_KEYS[i]}" "${MENU_DESC[i]}" "$C_OFF"
-        else
-            printf '     %s%-10s%s %s%s%s\n' \
-                "$C_KEY" "${MENU_KEYS[i]}" "$C_OFF" "$C_DIM" "${MENU_DESC[i]}" "$C_OFF"
-        fi
-    done
-    printf '\n  %s↑/↓ choisir · Entree valider · q quitter%s' "$C_DIM" "$C_OFF"
-}
-
-# Selection interactive (fleches). Renvoie l'index choisi dans REPLY_SEL,
-# ou -1 si l'utilisateur quitte (q / Echap).
-select_action() {
-    local sel="${1:-0}" n=${#MENU_KEYS[@]} key rest
-    printf '\e[?25l'                         # cache le curseur
-    printf '\e7'                             # sauve la position (DECSC)
+# --- Selecteur interactif generique (fleches) -------------------------------
+# pick KEYS_ARR DESC_ARR [START] -> index choisi dans REPLY_SEL, ou -1 si quit.
+pick() {
+    local -n _keys="$1" _desc="$2"
+    local sel="${3:-0}" n=${#_keys[@]} key rest i
+    printf '\e[?25l\e7'                       # cache le curseur + sauve la position
     while true; do
-        printf '\e8'                         # revient a la position (DECRC)
-        draw_menu "$sel"
+        printf '\e8'                          # revient a la position (DECRC)
+        for i in "${!_keys[@]}"; do
+            if (( i == sel )); then
+                printf '   %s ▶ %-10s %s %s\n' \
+                    "$C_SEL" "${_keys[i]}" "${_desc[i]}" "$C_OFF"
+            else
+                printf '     %s%-10s%s %s%s%s\n' \
+                    "$C_KEY" "${_keys[i]}" "$C_OFF" "$C_DIM" "${_desc[i]}" "$C_OFF"
+            fi
+        done
+        printf '\n  %s↑/↓ choisir · Entree valider · q retour%s' "$C_DIM" "$C_OFF"
         IFS= read -rsn1 key || { key=q; }
         if [[ $key == $'\e' ]]; then
             read -rsn2 -t 0.05 rest || rest=''
             case $rest in
                 '[A') sel=$(( (sel - 1 + n) % n )) ;;   # haut
                 '[B') sel=$(( (sel + 1) % n )) ;;       # bas
-                '')   sel=-1; break ;;                  # Echap seul = quitter
+                '')   sel=-1; break ;;                  # Echap seul = retour
             esac
         elif [[ -z $key ]]; then break        # Entree
         elif [[ $key == q || $key == Q ]]; then sel=-1; break
@@ -203,6 +187,61 @@ select_action() {
     REPLY_SEL=$sel
 }
 
+pause_menu() {   # attend une touche ; renvoie 1 si l'utilisateur veut quitter
+    local k
+    printf '\n  %s— Entree : revenir · q : quitter —%s ' "$C_DIM" "$C_OFF"
+    IFS= read -rsn1 k || k=q
+    [[ $k == q || $k == Q ]]
+}
+
+# --- Sous-menu Git ----------------------------------------------------------
+git_commit() {
+    printf '  Message de commit : '
+    local msg
+    IFS= read -r msg || return 0
+    [[ -z $msg ]] && { log "message vide, commit annule."; return 0; }
+    ( git -C "$DOTFILES" commit -m "$msg" ) || true
+}
+
+cmd_git() {
+    local keys=("Pull" "Add" "Commit" "Push" "Retour")
+    local desc=(
+        "git pull"
+        "git add .   (tout le depot)"
+        "git commit  (demande le message)"
+        "git push"
+        "Revenir au menu principal"
+    )
+    local last=0
+    while true; do
+        printf '\e[H\e[2J\n  %sGit%s  ·  %s\n\n' "$C_TITLE" "$C_OFF" "$DOTFILES"
+        pick keys desc "$last"
+        (( REPLY_SEL < 0 )) && return 0
+        last=$REPLY_SEL
+        [[ ${keys[REPLY_SEL]} == Retour ]] && return 0
+        printf '\n\n'
+        case $REPLY_SEL in
+            0) ( git -C "$DOTFILES" pull ) || true ;;
+            1) ( git -C "$DOTFILES" add . && log "git add . fait." ) || true ;;
+            2) git_commit ;;
+            3) ( git -C "$DOTFILES" push ) || true ;;
+        esac
+        pause_menu && return 0
+    done
+}
+
+# --- Menu principal ---------------------------------------------------------
+MENU_KEYS=("--copy" "--upgrade" "--restore" "--list" "--git" "Quitter")
+MENU_FN=("cmd_copy" "cmd_upgrade" "cmd_restore" "cmd_list" "cmd_git" "__quit__")
+MENU_DESC=(
+    "Sauvegarder   \$HOME  ->  depot git"
+    "Deployer      depot git  ->  \$HOME   (snapshot avant)"
+    "Restaurer     annuler le dernier --upgrade (rollback)"
+    "Etat          lister les configs et le dernier snapshot"
+    "Git           pull / add / commit / push"
+    "Sortir de l'application"
+)
+
 run_menu() {
     # Pas de TTY (pipe, cron...) : on retombe sur l'aide texte.
     if [[ ! -t 0 || ! -t 1 ]]; then
@@ -210,22 +249,22 @@ run_menu() {
         return 0
     fi
 
-    local last=0 k
+    local last=0 fn
     while true; do
         printf '\e[H\e[2J'                    # efface l'ecran
         banner
-        select_action "$last"
+        pick MENU_KEYS MENU_DESC "$last"
         (( REPLY_SEL < 0 )) && break          # q / Echap
         last=$REPLY_SEL
-        [[ ${MENU_FN[REPLY_SEL]} == __quit__ ]] && break   # 5e choix : Quitter
-
+        fn=${MENU_FN[REPLY_SEL]}
+        [[ $fn == __quit__ ]] && break
+        if [[ $fn == cmd_git ]]; then
+            cmd_git                            # sous-menu : gere son propre retour
+            continue
+        fi
         printf '\n\n'
-        # Sous-shell : un 'die'/exit dans l'action ne tue pas le menu.
-        ( "${MENU_FN[REPLY_SEL]}" ) || true
-
-        printf '\n  %s— Entree : revenir au menu · q : quitter —%s ' "$C_DIM" "$C_OFF"
-        IFS= read -rsn1 k || k=q
-        [[ $k == q || $k == Q ]] && break
+        ( "$fn" ) || true                      # sous-shell : un exit ne tue pas le menu
+        pause_menu && break
     done
     printf '\n'
     log "A bientot."
@@ -236,6 +275,7 @@ case "${1:-}" in
     --upgrade)   cmd_upgrade ;;
     --restore)   cmd_restore ;;
     --list)      cmd_list ;;
+    --git)       cmd_git ;;
     -h|--help)   usage ;;
     "")          run_menu ;;
     *) die "option inconnue : $1  (voir --help)" ;;
