@@ -20,4 +20,5 @@ if status is-interactive
 	pokemon-colorscripts -r 1,2,3
 	
 	fish_add_path ~/Apps
+	fish_add_path ~/.local/bin
 end

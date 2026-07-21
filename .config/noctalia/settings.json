@@ -168,6 +168,26 @@
                 },
                 {
                     "defaultSettings": {
+                        "compactMode": false,
+                        "defaultPeerAction": "copy-ip",
+                        "hideDisconnected": false,
+                        "hideMullvadExitNodes": true,
+                        "loginServer": "",
+                        "pingCount": 5,
+                        "refreshInterval": 5000,
+                        "showIpAddress": true,
+                        "showPeerCount": true,
+                        "showSearchBar": false,
+                        "sshUsername": "",
+                        "taildropDownloadDir": "~/Downloads",
+                        "taildropEnabled": true,
+                        "taildropReceiveMode": "operator",
+                        "terminalCommand": ""
+                    },
+                    "id": "plugin:tailscale"
+                },
+                {
+                    "defaultSettings": {
                         "githubGistId": "",
                         "githubToken": "",
                         "notes": "[]",
@@ -189,12 +209,6 @@
                         "transAvailable": false
                     },
                     "id": "plugin:screen-toolkit"
-                },
-                {
-                    "displayMode": "onhover",
-                    "iconColor": "primary",
-                    "id": "VPN",
-                    "textColor": "none"
                 },
                 {
                     "hideWhenZero": false,
@@ -226,6 +240,21 @@
                     "iconColor": "none",
                     "id": "Brightness",
                     "textColor": "none"
+                },
+                {
+                    "defaultSettings": {
+                        "refreshInterval": 5000
+                    },
+                    "id": "plugin:mini-docker"
+                },
+                {
+                    "defaultSettings": {
+                        "connectedColor": "primary",
+                        "disableToastNotifications": false,
+                        "disconnectedColor": "none",
+                        "displayMode": "onhover"
+                    },
+                    "id": "plugin:network-manager-vpn"
                 }
             ]
         }
@@ -255,14 +284,14 @@
     },
     "colorSchemes": {
         "darkMode": true,
-        "generationMethod": "dysfunctional",
+        "generationMethod": "tonal-spot",
         "manualSunrise": "06:30",
         "manualSunset": "18:30",
-        "monitorForColors": "",
-        "predefinedScheme": "Gruvbox",
+        "monitorForColors": "HDMI-A-1",
+        "predefinedScheme": "Lilac AMOLED",
         "schedulingMode": "off",
         "syncGsettings": true,
-        "useWallpaperColors": true
+        "useWallpaperColors": false
     },
     "controlCenter": {
         "cards": [
@@ -391,7 +420,7 @@
         "animationDisabled": false,
         "animationSpeed": 1,
         "autoStartAuth": false,
-        "avatarImage": "/home/sdelage/SynologyDrive/Images/Profiles/d3l8s0g-ffaebf8b-93e1-4a8f-b567-039480528fdd.png",
+        "avatarImage": "/home/sdelage/SynologyDrive/Images/Profiles/bwr_jr_profil.png",
         "boxRadiusRatio": 1,
         "clockFormat": "hh\\nmm",
         "clockStyle": "custom",
@@ -519,7 +548,7 @@
     "notifications": {
         "backgroundOpacity": 1,
         "clearDismissed": true,
-        "criticalUrgencyDuration": 3,
+        "criticalUrgencyDuration": 15,
         "density": "default",
         "enableBatteryToast": true,
         "enableKeyboardLayoutToast": true,
@@ -527,13 +556,13 @@
         "enableMediaToast": false,
         "enabled": true,
         "location": "top_right",
-        "lowUrgencyDuration": 3,
+        "lowUrgencyDuration": 5,
         "monitors": [
             "DP-1"
         ],
-        "normalUrgencyDuration": 3,
+        "normalUrgencyDuration": 10,
         "overlayLayer": true,
-        "respectExpireTimeout": false,
+        "respectExpireTimeout": true,
         "saveToHistory": {
             "critical": true,
             "low": true,
@@ -660,26 +689,6 @@
     },
     "templates": {
         "activeTemplates": [
-            {
-                "enabled": true,
-                "id": "niri"
-            },
-            {
-                "enabled": true,
-                "id": "gtk"
-            },
-            {
-                "enabled": true,
-                "id": "alacritty"
-            },
-            {
-                "enabled": true,
-                "id": "steam"
-            },
-            {
-                "enabled": true,
-                "id": "ghostty"
-            }
         ],
         "enableUserTheming": false
     },

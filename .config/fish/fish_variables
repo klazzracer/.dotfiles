@@ -6,4 +6,4 @@ SETUVAR _fisher_jorgebucaran_2F_fisher_files:\x7e/\x2econfig/fish/functions/fish
 SETUVAR _fisher_plugins:jorgebucaran/fisher\x1e/home/sdelage/Clones/fzf\x2efish
 SETUVAR _fisher_upgraded_to_4_4:\x1d
 SETUVAR fish_greeting:
-SETUVAR fish_user_paths:/home/sdelage/Apps
+SETUVAR fish_user_paths:/home/sdelage/\x2elocal/bin\x1e/home/sdelage/Apps
