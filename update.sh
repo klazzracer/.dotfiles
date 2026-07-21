@@ -29,7 +29,16 @@ ITEMS=(
     ".config/fish"
     ".config/nano"
     ".config/hypr"
+    ".config/kitty"
+    ".vim"
 )
+
+# --- Les dossiers .git internes sont ignores partout (copie, comparaison).
+#     Raison : ~/.vim/pack/themes/start/* sont des depots git clones. Git
+#     refuse d'imbriquer un depot dans un autre (il n'enregistrerait qu'un
+#     gitlink, sans le contenu -> themes perdus). On copie donc les fichiers
+#     sans leur .git, ce qui suffit : un theme vim est du texte, pas un depot.
+RSYNC_EXCL=(--exclude '.git/')
 
 # --- Couleurs (desactivees si la sortie n'est pas un terminal)
 if [[ -t 1 ]]; then
@@ -55,7 +64,7 @@ mirror() {
     mkdir -p "$(dirname "$dst")"
     if [[ -d "$src" ]]; then
         rm -rf "$dst"
-        rsync -a "$src/" "$dst/"
+        rsync -a "${RSYNC_EXCL[@]}" "$src/" "$dst/"
     else
         rsync -a "$src" "$dst"
     fi
@@ -129,7 +138,7 @@ cmd_restore() {
 newest() {
     [[ -e "$1" ]] || return 0
     if [[ -d "$1" ]]; then
-        find "$1" -type f -printf '%T@\n' 2>/dev/null | sort -rn | head -n1 || true
+        find "$1" -type f -not -path '*/.git/*' -printf '%T@\n' 2>/dev/null | sort -rn | head -n1 || true
     else
         stat -c '%Y' "$1" 2>/dev/null || true
     fi
@@ -161,8 +170,8 @@ list_diffs() {
     local -a rels=()
     if [[ -d "$h" || -d "$d" ]]; then
         while IFS= read -r rel; do rels+=("$rel"); done < <(
-            { [[ -d "$h" ]] && ( cd "$h" && find . -type f -printf '%P\n' )
-              [[ -d "$d" ]] && ( cd "$d" && find . -type f -printf '%P\n' ) ; } \
+            { [[ -d "$h" ]] && ( cd "$h" && find . -type f -not -path './.git/*' -not -path '*/.git/*' -printf '%P\n' )
+              [[ -d "$d" ]] && ( cd "$d" && find . -type f -not -path './.git/*' -not -path '*/.git/*' -printf '%P\n' ) ; } \
               2>/dev/null | sort -u )
     else
         rels=("")                              # element = fichier simple
@@ -202,7 +211,7 @@ cmd_list() {
             etat="${C_ERR}! absent du depot   -> --copy${C_OFF}"
         elif [[ -z $mh ]]; then
             etat="${C_ERR}! absent du systeme -> --upgrade${C_OFF}"
-        elif diff -rq "$h" "$d" >/dev/null 2>&1; then
+        elif diff -rq --exclude=.git "$h" "$d" >/dev/null 2>&1; then
             etat="${C_OK}= identique${C_OFF}"
         elif (( ih > idp )); then
             etat="${C_WARN}↑ systeme plus recent -> --copy${C_OFF}"; show=1
@@ -230,7 +239,7 @@ banner() {
     printf '  %s╰───────────────────────────────────────────────╯%s\n' "$C_TITLE" "$C_OFF"
     printf '\n'
     printf '  Synchronise mes fichiers de config (vim, niri, noctalia,\n'
-    printf '  fish) entre ce systeme et mon depot git ~/.dotfiles.\n'
+    printf '  fish, kitty) entre ce systeme et mon depot git ~/.dotfiles.\n'
     printf '  Chaque deploiement fait un snapshot pour pouvoir revenir\n'
     printf '  en arriere.\n\n'
     printf '  %sQue veux-tu faire ?%s\n\n' "$C_TITLE" "$C_OFF"

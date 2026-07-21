@@ -1,1 +1,6 @@
 .backups/
+
+# Copies de securite locales : utiles sur le systeme, inutiles dans git.
+# (rsync les recopie quand meme dans le depot, git les ignore simplement)
+*.bak
+*.pre-papercolor

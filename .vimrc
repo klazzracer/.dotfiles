@@ -15,6 +15,19 @@ syntax on
 filetype plugin indent on
 
 " ---------------------------------------------------------------------------
+" Couleurs / theme
+" ---------------------------------------------------------------------------
+" Embark (https://github.com/embark-theme/vim) installe dans
+" ~/.vim/pack/themes/start/embark -- charge automatiquement par vim 8+,
+" aucun gestionnaire de plugins necessaire.
+"
+" Embark exige le truecolor : termguicolors DOIT etre actif avant le
+" colorscheme, sinon les couleurs 24 bits sont ignorees.
+set termguicolors
+set background=dark
+colorscheme PaperColor
+
+" ---------------------------------------------------------------------------
 " Presse-papier systeme
 " ---------------------------------------------------------------------------
 " Paquet gvim (vim +clipboard +wayland_clipboard) : y / d / p utilisent
