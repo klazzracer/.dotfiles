@@ -27,6 +27,8 @@ ITEMS=(
     ".config/niri"
     ".config/noctalia"
     ".config/fish"
+    ".config/nano"
+    ".config/hypr"
 )
 
 # --- Couleurs (desactivees si la sortie n'est pas un terminal)
