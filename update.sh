@@ -35,8 +35,10 @@ ITEMS=(
 if [[ -t 1 ]]; then
     C_TITLE=$'\e[1;36m'; C_KEY=$'\e[1;33m'; C_DIM=$'\e[2m'
     C_SEL=$'\e[7m'; C_OFF=$'\e[0m'
+    C_OK=$'\e[32m'; C_WARN=$'\e[33m'; C_ERR=$'\e[31m'
 else
     C_TITLE=''; C_KEY=''; C_DIM=''; C_SEL=''; C_OFF=''
+    C_OK=''; C_WARN=''; C_ERR=''
 fi
 
 log() { printf '  %s\n' "$*"; }
@@ -123,19 +125,100 @@ cmd_restore() {
     log "Termine."
 }
 
+# newest PATH : epoch du fichier le plus recent sous PATH (vide si absent)
+newest() {
+    [[ -e "$1" ]] || return 0
+    if [[ -d "$1" ]]; then
+        find "$1" -type f -printf '%T@\n' 2>/dev/null | sort -rn | head -n1 || true
+    else
+        stat -c '%Y' "$1" 2>/dev/null || true
+    fi
+}
+
+# fmtdate EPOCH : 'AAAA-MM-JJ HH:MM' (— si vide)
+fmtdate() {
+    [[ -z $1 ]] && { printf '%s' '—'; return; }
+    date -d "@${1%.*}" '+%Y-%m-%d %H:%M'
+}
+
+# datecolors MH MD -> DCH / DCD : vert sur la date la plus recente, blanc sur
+# l'autre (rien si les deux sont vides ou de meme date).
+datecolors() {
+    DCH=''; DCD=''
+    local a="${1%.*}" b="${2%.*}"
+    if   [[ -z $1 && -z $2 ]]; then return
+    elif [[ -z $2 ]]; then DCH=$C_OK
+    elif [[ -z $1 ]]; then DCD=$C_OK
+    elif (( a > b )); then DCH=$C_OK
+    elif (( b > a )); then DCD=$C_OK
+    fi
+}
+
+# list_diffs H D : imprime, indentes, les fichiers qui different entre H et D
+# avec leurs dates (systeme / depot). Nom en vert, date la plus recente en vert.
+list_diffs() {
+    local h="$1" d="$2" rel hp dp mh md tag
+    local -a rels=()
+    if [[ -d "$h" || -d "$d" ]]; then
+        while IFS= read -r rel; do rels+=("$rel"); done < <(
+            { [[ -d "$h" ]] && ( cd "$h" && find . -type f -printf '%P\n' )
+              [[ -d "$d" ]] && ( cd "$d" && find . -type f -printf '%P\n' ) ; } \
+              2>/dev/null | sort -u )
+    else
+        rels=("")                              # element = fichier simple
+    fi
+    for rel in "${rels[@]}"; do
+        hp="$h${rel:+/$rel}"; dp="$d${rel:+/$rel}"
+        [[ -e "$hp" || -e "$dp" ]] || continue
+        if [[ -f "$hp" && -f "$dp" ]] && cmp -s "$hp" "$dp"; then continue; fi
+        mh=$( [[ -e "$hp" ]] && stat -c '%Y' "$hp" 2>/dev/null || true )
+        md=$( [[ -e "$dp" ]] && stat -c '%Y' "$dp" 2>/dev/null || true )
+        if   [[ -z $md ]]; then tag="depot: absent"
+        elif [[ -z $mh ]]; then tag="systeme: absent"
+        elif (( ${mh%.*} > ${md%.*} )); then tag="systeme +recent"
+        elif (( ${md%.*} > ${mh%.*} )); then tag="depot +recent"
+        else tag="different (meme date)"
+        fi
+        datecolors "$mh" "$md"
+        printf '    %s%-18s%s %s%-17s%s %s%-17s%s %s\n' \
+            "$C_OK" "${rel:-$(basename "$h")}" "$C_OFF" \
+            "$DCH" "$(fmtdate "$mh")" "$C_OFF" \
+            "$DCD" "$(fmtdate "$md")" "$C_OFF" "$tag"
+    done
+}
+
 cmd_list() {
-    log "Depot   : $DOTFILES"
-    log "Elements geres :"
-    local rel
+    log "Depot : $DOTFILES"
+    printf '\n  %-20s %-17s %-17s %s\n' "Element" "systeme" "depot" "etat"
+    printf '  %-20s %-17s %-17s %s\n' "--------------------" "-----------------" "-----------------" "----"
+    local rel h d mh md ih idp etat show
     for rel in "${ITEMS[@]}"; do
-        printf '    %-28s home:%s  depot:%s\n' "$rel" \
-            "$([[ -e "$HOME/$rel" ]] && echo oui || echo NON)" \
-            "$([[ -e "$DOTFILES/$rel" ]] && echo oui || echo NON)"
+        h="$HOME/$rel"; d="$DOTFILES/$rel"
+        mh=$(newest "$h"); md=$(newest "$d")
+        ih=${mh%.*}; idp=${md%.*}; show=0
+        if [[ -z $mh && -z $md ]]; then
+            etat="${C_ERR}absent des deux${C_OFF}"
+        elif [[ -z $md ]]; then
+            etat="${C_ERR}! absent du depot   -> --copy${C_OFF}"
+        elif [[ -z $mh ]]; then
+            etat="${C_ERR}! absent du systeme -> --upgrade${C_OFF}"
+        elif diff -rq "$h" "$d" >/dev/null 2>&1; then
+            etat="${C_OK}= identique${C_OFF}"
+        elif (( ih > idp )); then
+            etat="${C_WARN}↑ systeme plus recent -> --copy${C_OFF}"; show=1
+        elif (( idp > ih )); then
+            etat="${C_WARN}↓ depot plus recent   -> --upgrade${C_OFF}"; show=1
+        else
+            etat="${C_WARN}≠ different (meme date)${C_OFF}"; show=1
+        fi
+        datecolors "$mh" "$md"
+        printf '  %-20s %s%-17s%s %s%-17s%s %b\n' "$rel" \
+            "$DCH" "$(fmtdate "$mh")" "$C_OFF" \
+            "$DCD" "$(fmtdate "$md")" "$C_OFF" "$etat"
+        [[ $show == 1 ]] && list_diffs "$h" "$d"
     done
     if [[ -f "$BACKUPS/last" ]]; then
-        log "Dernier snapshot : $(cat "$BACKUPS/last")"
-    else
-        log "Aucun snapshot."
+        printf '\n'; log "Dernier snapshot : $(cat "$BACKUPS/last")"
     fi
 }
 
