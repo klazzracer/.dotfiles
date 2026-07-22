@@ -379,6 +379,17 @@ window-rule {
     open-floating true
 }
 
+// Set transparency for Nautilus windows
+window-rule {
+    match app-id="org.gnome.Nautilus"
+    opacity 0.95 // Adjust this value between 0.0 (fully transparent) and 1.0 (fully opaque)
+
+    // Remove the solid background behind transparent windows to stop borders/focus rings from bleeding through
+    draw-border-with-background false
+}
+
+
+
 // Open the TimeShift in floating by default.
 window-rule {
     // This app-id regular expression will work for both:
