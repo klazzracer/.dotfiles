@@ -1,0 +1,10 @@
+brave-bin
+catgirldownloader
+localsend-bin
+noctalia-git
+pokemon-colorscripts-git
+spicetify-bin
+spotify
+synology-drive
+visual-studio-code-bin
+yay

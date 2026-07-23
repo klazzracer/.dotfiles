@@ -1,0 +1,98 @@
+# Paquets officiels (pacman) pour --bootstrap.
+# Liste curee : niri/Wayland + apps, GNOME de bureau retire.
+# NB: `update.sh --save` REECRIT ce fichier depuis pacman -Qqen et perdra
+#     cette curation (et les commentaires). Edite a la main de preference.
+# Les lignes vides et # commentaires sont ignores.
+
+# --- Base systeme / boot ---
+amd-ucode
+base
+base-devel
+efibootmgr
+grub
+linux
+linux-firmware
+man-db
+sudo
+systemd-resolvconf
+zram-generator
+fwupd
+
+# --- GPU (AMD) ---
+vulkan-radeon
+xf86-video-amdgpu
+xf86-video-ati
+
+# --- Audio / alimentation / materiel ---
+alsa-utils
+cpupower
+power-profiles-daemon
+powertop
+tlp
+tlp-rdw
+smartmontools
+fprintd
+
+# --- Reseau ---
+networkmanager
+network-manager-applet
+wpa_supplicant
+wireguard-tools
+ethtool
+fping
+
+# --- Session Wayland / niri (coeur du setup) ---
+niri
+xwayland-satellite
+xdg-desktop-portal-gnome
+polkit-gnome
+gnome-keyring
+gdm
+greetd
+matugen
+cliphist
+grim
+slurp
+satty
+hyprpicker
+nwg-look
+xdg-user-dirs-gtk
+xdg-utils
+
+# --- Gestionnaire de fichiers (nautilus + backends utiles) ---
+nautilus
+gvfs
+gvfs-mtp
+gvfs-smb
+sushi
+gst-thumbnailers
+
+# --- Disques / partitions / sauvegarde ---
+gnome-disk-utility
+gparted
+timeshift
+
+# --- Utilitaire GTK garde ---
+gnome-calculator
+
+# --- Terminaux / editeurs / CLI ---
+kitty
+fish
+gvim
+ex-vi-compat
+nano
+git
+wget
+bat
+fd
+fzf
+ncdu
+htop
+
+# --- Applications ---
+firefox
+thunderbird
+discord
+steam
+gimp
+libreoffice-fresh

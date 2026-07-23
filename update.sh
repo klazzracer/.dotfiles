@@ -6,6 +6,8 @@
 #   update.sh --upgrade   depot  -> $HOME    (deploie ; snapshot auto avant)
 #   update.sh --restore   annule le dernier --upgrade (restaure le snapshot)
 #   update.sh --list      liste les elements geres et l'etat des snapshots
+#   update.sh --save      snapshote les paquets installes dans le depot
+#   update.sh --bootstrap [beta] reinstalle paquets (pacman+yay) + clone depots
 #   update.sh --help
 #
 # Sans argument : menu interactif (fleches + Entree).
@@ -20,6 +22,12 @@ set -euo pipefail
 DOTFILES="${DOTFILES:-$HOME/.dotfiles}"
 BACKUPS="$DOTFILES/.backups"
 
+# --- Bootstrap (beta) : listes de paquets + manifeste des depots a cloner.
+PKG_REPO="$DOTFILES/packages-repo.txt"   # paquets officiels (pacman)
+PKG_AUR="$DOTFILES/packages-aur.txt"     # paquets AUR (yay)
+CLONES="$DOTFILES/clones.list"           # depots git : une URL par ligne
+CLONES_DIR="$HOME/Documents/Clones"      # tous les depots sont clones ici
+
 # --- Elements geres : chemins relatifs a $HOME (== relatifs au depot).
 #     Fichier ou dossier. Ajoute-en librement (ex: ".config/fish").
 ITEMS=(
@@ -31,6 +39,7 @@ ITEMS=(
     ".config/hypr"
     ".config/kitty"
     ".vim"
+    ".local/share/icons"
 )
 
 # --- Les dossiers .git internes sont ignores partout (copie, comparaison).
@@ -54,7 +63,7 @@ log() { printf '  %s\n' "$*"; }
 die() { printf 'update.sh: %s\n' "$*" >&2; exit 1; }
 
 usage() {
-    sed -n '3,15p' "$0" | sed 's/^#\s\{0,1\}//'
+    sed -n '3,17p' "$0" | sed 's/^#\s\{0,1\}//'
 }
 
 # mirror SRC DST : copie exacte de SRC (fichier ou dossier) vers DST.
@@ -322,14 +331,117 @@ cmd_git() {
     done
 }
 
+# --- Bootstrap (beta) : reinstallation "one-click" -------------------------
+#     --save      snapshote les paquets explicites actuels dans le depot
+#     --bootstrap installe paquets (pacman + yay) puis clone les depots
+#
+# Idempotent : --needed saute ce qui est deja installe, les clones deja
+# presents sont ignores. Relançable sans risque.
+
+# Lit un fichier de paquets (ignore lignes vides et commentaires) dans un tableau.
+read_pkglist() {   # read_pkglist FICHIER  -> remplit le tableau nomme PKGS_OUT
+    local file="$1"; PKGS_OUT=()
+    [[ -f "$file" ]] || return 1
+    local line
+    while IFS= read -r line; do
+        line="${line%%#*}"                     # retire les commentaires en fin de ligne
+        line="${line//[[:space:]]/}"           # trim
+        [[ -n "$line" ]] && PKGS_OUT+=("$line")
+    done < "$file"
+    (( ${#PKGS_OUT[@]} > 0 ))
+}
+
+cmd_save() {
+    log "Snapshot des paquets explicites  ->  depot"
+    if command -v pacman >/dev/null; then
+        pacman -Qqen | grep -vE -- '-debug$' > "$PKG_REPO"
+        log "officiels : $(wc -l < "$PKG_REPO") paquets  -> $(basename "$PKG_REPO")"
+        pacman -Qqm  | grep -vE -- '-debug$' > "$PKG_AUR"
+        log "AUR       : $(wc -l < "$PKG_AUR") paquets  -> $(basename "$PKG_AUR")"
+    else
+        log "pacman introuvable — snapshot ignore."
+    fi
+    log "Manifeste des clones : $(basename "$CLONES") (a editer a la main)."
+}
+
+# Installe yay depuis l'AUR s'il manque (necessaire sur une install fraiche).
+ensure_yay() {
+    command -v yay >/dev/null && { log "yay : deja present."; return 0; }
+    log "yay absent — installation depuis l'AUR..."
+    sudo pacman -S --needed --noconfirm base-devel git || { log "echec base-devel/git."; return 1; }
+    local tmp; tmp="$(mktemp -d)"
+    if git clone https://aur.archlinux.org/yay.git "$tmp/yay" \
+        && ( cd "$tmp/yay" && makepkg -si --noconfirm ); then
+        rm -rf "$tmp"; log "yay installe."
+    else
+        rm -rf "$tmp"; log "echec de l'installation de yay."; return 1
+    fi
+}
+
+clone_all() {
+    [[ -f "$CLONES" ]] || { log "clones.list absent — aucun depot a cloner."; return 0; }
+    mkdir -p "$CLONES_DIR"                          # cree Documents/Clones au besoin
+    local line url name abs
+    while IFS= read -r line; do
+        line="${line%%#*}"                          # retire les commentaires
+        read -r url name _ <<< "$line"              # url + nom de dossier optionnel
+        [[ -z "$url" ]] && continue
+        # nom du dossier = 2e champ si fourni, sinon nom du depot (sans .git)
+        [[ -z "$name" ]] && { name="${url##*/}"; name="${name%.git}"; }
+        abs="$CLONES_DIR/$name"
+        if [[ -d "$abs/.git" ]]; then
+            log "deja clone : $name"
+        else
+            log "clone : $url"
+            if git clone "$url" "$abs"; then log "  -> Documents/Clones/$name"
+            else log "  ECHEC : $url"; fi
+        fi
+    done < "$CLONES"
+}
+
+cmd_bootstrap() {
+    log "${C_WARN}BOOTSTRAP (beta)${C_OFF} — reinstallation des paquets et depots."
+    log "Depot : $DOTFILES"; printf '\n'
+
+    # 1. AUR helper
+    ensure_yay || { log "Abandon : yay indispensable pour l'AUR."; return 1; }
+
+    # 2. Paquets officiels (pacman). Passes en arguments (pas via stdin) pour
+    #    que pacman puisse afficher ses confirmations normalement.
+    if read_pkglist "$PKG_REPO"; then
+        log "Paquets officiels : ${#PKGS_OUT[@]} a verifier..."
+        sudo pacman -S --needed "${PKGS_OUT[@]}" || log "pacman : certains paquets ont echoue."
+    else
+        log "packages-repo.txt vide/absent (lance --save d'abord)."
+    fi
+
+    # 3. Paquets AUR (yay)
+    if read_pkglist "$PKG_AUR"; then
+        log "Paquets AUR : ${#PKGS_OUT[@]} a verifier..."
+        yay -S --needed "${PKGS_OUT[@]}" || log "yay : certains paquets ont echoue."
+    else
+        log "packages-aur.txt vide/absent."
+    fi
+
+    # 4. Depots git
+    printf '\n'; clone_all
+
+    printf '\n'
+    log "Bootstrap termine. Etapes suivantes conseillees :"
+    log "  - update.sh --upgrade   (deployer les configs)"
+    log "  - verifier les symlinks (ex: ~/.local/share/icons)"
+}
+
 # --- Menu principal ---------------------------------------------------------
-MENU_KEYS=("--copy" "--upgrade" "--restore" "--list" "--git" "Quitter")
-MENU_FN=("cmd_copy" "cmd_upgrade" "cmd_restore" "cmd_list" "cmd_git" "__quit__")
+MENU_KEYS=("--copy" "--upgrade" "--restore" "--list" "--save" "--bootstrap" "--git" "Quitter")
+MENU_FN=("cmd_copy" "cmd_upgrade" "cmd_restore" "cmd_list" "cmd_save" "cmd_bootstrap" "cmd_git" "__quit__")
 MENU_DESC=(
     "Sauvegarder   \$HOME  ->  depot git"
     "Deployer      depot git  ->  \$HOME   (snapshot avant)"
     "Restaurer     annuler le dernier --upgrade (rollback)"
     "Etat          lister les configs et le dernier snapshot"
+    "Save pkgs     snapshot des paquets installes -> depot"
+    "Bootstrap     [beta] reinstaller paquets + cloner les depots"
     "Git           pull / add / commit / push"
     "Sortir de l'application"
 )
@@ -367,6 +479,8 @@ case "${1:-}" in
     --upgrade)   cmd_upgrade ;;
     --restore)   cmd_restore ;;
     --list)      cmd_list ;;
+    --save)      cmd_save ;;
+    --bootstrap) cmd_bootstrap ;;
     --git)       cmd_git ;;
     -h|--help)   usage ;;
     "")          run_menu ;;

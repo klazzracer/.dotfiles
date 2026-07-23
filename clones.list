@@ -1,0 +1,11 @@
+# Depots a cloner par `update.sh --bootstrap`.
+# Tout est clone dans ~/Documents/Clones/ (cree automatiquement au besoin).
+#
+# Une URL git par ligne. Le nom du dossier = nom du depot (sans .git).
+# Optionnel : ajoute un 2e champ pour forcer un autre nom de dossier.
+#   https://github.com/user/repo.git            -> Documents/Clones/repo
+#   https://github.com/user/repo.git  mon-nom   -> Documents/Clones/mon-nom
+#
+# Astuce : utilise des URLs https (pas git@) pour cloner sans cle SSH.
+
+https://github.com/SylEleuth/gruvbox-plus-icon-pack.git
