@@ -34,3 +34,13 @@ colorscheme PaperColor
 " directement le presse-papier systeme. Ctrl-V colle dans les autres apps,
 " et p colle ce que tu as copie ailleurs.
 set clipboard=unnamedplus
+
+function! OSC52Yank()
+    let buffer = system('base64 -w0', getreg('"'))
+    let osc52 = "\e]52;c;" . buffer . "\x07"
+    " Write directly to the terminal device bypasses the lack of v:stderr
+    call writefile([osc52], '/dev/tty', 'b')
+endfunction
+
+autocmd TextYankPost * if v:event.regname == '' | call OSC52Yank() | endif
+

@@ -457,7 +457,7 @@ binds {
     Mod+L { spawn-sh "noctalia msg session lock"; }
     Mod+Ctrl+W { spawn-sh "noctalia msg panel-toggle wallpaper"; } 
     Mod+Alt+W { spawn-sh "noctalia msg panel-toggle noctalia/wallhaven:browser"; }
-    Mod+C {spawn-sh "noctalia msg panel-toggle clipboard";}
+    Mod+Ctrl+C {spawn-sh "noctalia msg panel-toggle clipboard";}
     Mod+N { spawn-sh "noctalia msg panel-toggle noctalia/notes:panel"; }
 
     // Example volume keys mappings for PipeWire & WirePlumber.
@@ -491,6 +491,7 @@ binds {
     Mod+Home  { focus-column-first; }
     Mod+End   { focus-column-last; } 
     Mod+V     { toggle-window-floating; }
+    Mod+C     { center-column; }
 
     Mod+WheelScrollDown { focus-column-right; }
     Mod+WheelScrollUp { focus-column-left; } 
@@ -662,7 +663,7 @@ binds {
     // Makes the column "fill the rest of the space".
 
 
-    //Mod+C { center-column; }
+
 
     // Center all fully visible columns on screen.
     // Mod+Ctrl+C { center-visible-columns; }
