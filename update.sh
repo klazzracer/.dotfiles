@@ -9,7 +9,9 @@
 #   update.sh --resolve   fusion interactive fichier par fichier (diff + choix)
 #   update.sh --sync      git pull qui gere tes modifs locales (stash+merge)
 #   update.sh --save      snapshote les paquets installes dans le depot
-#   update.sh --bootstrap [beta] reinstalle paquets (pacman+yay) + clone depots
+#   update.sh --bootstrap installe TOUT le bureau depuis un Arch minimal :
+#                         depots pacman (multilib), paquets, AUR, services,
+#                         shell+groupes, clones, themes, puis deploie configs
 #   update.sh --help
 #
 # Sans argument : menu interactif (fleches + Entree).
@@ -64,7 +66,7 @@ log() { printf '  %s\n' "$*"; }
 die() { printf 'update.sh: %s\n' "$*" >&2; exit 1; }
 
 usage() {
-    sed -n '3,19p' "$0" | sed 's/^#\s\{0,1\}//'
+    sed -n '3,21p' "$0" | sed 's/^#\s\{0,1\}//'
 }
 
 # mirror SRC DST : copie exacte de SRC (fichier ou dossier) vers DST.
@@ -557,12 +559,34 @@ cmd_git() {
     done
 }
 
-# --- Bootstrap (beta) : reinstallation "one-click" -------------------------
+# --- Bootstrap : "Arch minimal  ->  bureau fonctionnel" en une commande ----
 #     --save      snapshote les paquets explicites actuels dans le depot
-#     --bootstrap installe paquets (pacman + yay) puis clone les depots
+#     --bootstrap fait TOUT : depots pacman, paquets, AUR, services, shell,
+#                 groupes, clones, themes d'icones, puis deploie les configs.
 #
-# Idempotent : --needed saute ce qui est deja installe, les clones deja
-# presents sont ignores. Relançable sans risque.
+# Idempotent : --needed saute ce qui est deja installe, les services deja
+# actifs sont ignores, les clones deja presents aussi. Relançable sans risque.
+#
+# Services systemd actives (ignores si l'unite n'existe pas sur la machine).
+SERVICES_SYSTEM=(
+    "NetworkManager.service"        # reseau
+    "bluetooth.service"             # bluetooth
+    "gdm.service"                   # ecran de connexion (alternative : greetd)
+    "power-profiles-daemon.service" # profils d'alimentation
+    "systemd-timesyncd.service"     # horloge
+    "fstrim.timer"                  # TRIM SSD hebdomadaire
+)
+SERVICES_USER=(
+    "pipewire.socket"
+    "pipewire-pulse.socket"
+    "wireplumber.service"
+)
+# Groupes utilisateur utiles (ignores s'ils n'existent pas).
+USER_GROUPS=(wheel video input storage)
+
+# Recapitulatif de fin : chaque etape s'y ajoute (OK / echec / ignore).
+BOOT_REPORT=()
+report() { BOOT_REPORT+=("$1"); }
 
 # Lit un fichier de paquets (ignore lignes vides et commentaires) dans un tableau.
 read_pkglist() {   # read_pkglist FICHIER  -> remplit le tableau nomme PKGS_OUT
@@ -588,6 +612,99 @@ cmd_save() {
         log "pacman introuvable — snapshot ignore."
     fi
     log "Manifeste des clones : $(basename "$CLONES") (a editer a la main)."
+}
+
+# --- Etape 1 : depots pacman ------------------------------------------------
+# Sur une install Arch minimale, [multilib] est COMMENTE dans pacman.conf. Or
+# la liste contient des paquets multilib (steam). `pacman -S` etant atomique,
+# un seul nom introuvable fait echouer TOUTE la transaction : niri et tout le
+# reste ne s'installent pas. On active donc le depot avant d'installer.
+enable_multilib() {
+    if grep -q '^\[multilib\]' /etc/pacman.conf; then
+        log "[multilib] : deja actif."; return 0
+    fi
+    log "[multilib] desactive — activation dans /etc/pacman.conf..."
+    sudo cp /etc/pacman.conf "/etc/pacman.conf.bak-$(date +%Y%m%d-%H%M%S)"
+    # N lit la ligne suivante : on ne dé-commente la paire que si elle est
+    # exactement "#[multilib]" + "#Include" ([multilib-testing] n'est pas touche).
+    sudo sed -i '/^#\[multilib\]$/{N;s/^#\[multilib\]\n#Include/[multilib]\nInclude/}' \
+        /etc/pacman.conf
+    if grep -q '^\[multilib\]' /etc/pacman.conf; then
+        log "${C_OK}[multilib] active.${C_OFF}"; report "${C_OK}OK${C_OFF}   multilib active"
+    else
+        log "${C_WARN}Echec : ajoute [multilib] a la main dans /etc/pacman.conf.${C_OFF}"
+        report "${C_WARN}!${C_OFF}    multilib NON active (steam echouera)"
+    fi
+}
+
+# Confort pacman : telechargements paralleles + couleurs (sans effet si deja la).
+tune_pacman() {
+    grep -q '^ParallelDownloads' /etc/pacman.conf \
+        || sudo sed -i 's/^#ParallelDownloads.*/ParallelDownloads = 5/' /etc/pacman.conf
+    grep -q '^Color' /etc/pacman.conf \
+        || sudo sed -i 's/^#Color$/Color/' /etc/pacman.conf
+}
+
+# --- Etape 2 : installation robuste ----------------------------------------
+# pacman/yay sont atomiques : un paquet introuvable (renomme, sorti des depots,
+# depot manquant) annule tout le lot. On tente donc le lot d'un coup — rapide
+# et avec une seule confirmation — puis, si ca casse, on repasse paquet par
+# paquet pour installer tout ce qui est installable et NOMMER ce qui echoue.
+FAILED_PKGS=()
+
+# missing_only PKGS... -> remplit MISSING avec les paquets non installes.
+#     Relancer --bootstrap ne doit rien refaire d'inutile : ce qui est deja la
+#     est saute (les MISES A JOUR, elles, sont faites par le -Syu de l'etape 2,
+#     pas ici — plus rapide et une seule confirmation pour tout le systeme).
+missing_only() {
+    MISSING=(); PRESENT_N=0
+    local p
+    for p in "$@"; do
+        if pacman -Qq -- "$p" >/dev/null 2>&1; then
+            PRESENT_N=$((PRESENT_N + 1))
+        else
+            MISSING+=("$p")
+        fi
+    done
+}
+
+# install_batch DESCRIPTION CMD... -- PKGS...
+install_batch() {
+    local what="$1"; shift
+    local -a cmd=()
+    while [[ $# -gt 0 && "$1" != "--" ]]; do cmd+=("$1"); shift; done
+    shift                                   # retire le "--"
+    local -a want=("$@")
+    (( ${#want[@]} )) || return 0
+
+    # Ne garder que ce qui manque : un --bootstrap relance ne reinstalle rien.
+    missing_only "${want[@]}"
+    local -a pkgs=("${MISSING[@]}")
+    log "$what : ${#want[@]} listes · $PRESENT_N deja presents · ${#pkgs[@]} a installer."
+    if (( ${#pkgs[@]} == 0 )); then
+        log "${C_OK}$what : rien a faire.${C_OFF}"
+        report "${C_OK}OK${C_OFF}   $what (deja complet, $PRESENT_N paquets)"
+        return 0
+    fi
+
+    if "${cmd[@]}" "${pkgs[@]}"; then
+        log "${C_OK}$what : lot installe.${C_OFF}"
+        report "${C_OK}OK${C_OFF}   $what (${#pkgs[@]} paquets)"
+        return 0
+    fi
+
+    log "${C_WARN}$what : le lot a echoue — reprise paquet par paquet...${C_OFF}"
+    local p ok=0 ko=0
+    for p in "${pkgs[@]}"; do
+        if "${cmd[@]}" --noconfirm "$p" >/dev/null 2>&1; then
+            ok=$((ok + 1))
+        else
+            ko=$((ko + 1)); FAILED_PKGS+=("$p"); log "  ${C_ERR}echec : $p${C_OFF}"
+        fi
+    done
+    log "$what : $ok installe(s), ${C_ERR}$ko en echec${C_OFF}."
+    if (( ko )); then report "${C_WARN}!${C_OFF}    $what : $ko paquet(s) en echec"
+    else report "${C_OK}OK${C_OFF}   $what ($ok paquets, reprise unitaire)"; fi
 }
 
 # Installe yay depuis l'AUR s'il manque (necessaire sur une install fraiche).
@@ -625,37 +742,214 @@ clone_all() {
     done < "$CLONES"
 }
 
-cmd_bootstrap() {
-    log "${C_WARN}BOOTSTRAP (beta)${C_OFF} — reinstallation des paquets et depots."
-    log "Depot : $DOTFILES"; printf '\n'
+# --- Etape 4 : themes d'icones clones -> ~/.local/share/icons --------------
+#     Un depot comme gruvbox-plus-icon-pack contient un ou plusieurs dossiers
+#     de theme (reconnaissables a leur index.theme). On les expose par symlink
+#     pour que GTK/nwg-look les voie. ~/.local/ est gitignore : c'est bien le
+#     bootstrap qui doit recreer ces liens sur une machine neuve.
+link_icon_themes() {
+    [[ -d "$CLONES_DIR" ]] || return 0
+    local dest="$HOME/.local/share/icons" theme name n=0
+    mkdir -p "$dest"
+    while IFS= read -r theme; do
+        name="$(basename "$theme")"
+        if [[ -L "$dest/$name" && -e "$dest/$name" ]]; then
+            log "theme deja lie : $name"
+        elif [[ -L "$dest/$name" ]]; then
+            # lien mort (clone supprime/deplace) : on le refait proprement
+            rm -f "$dest/$name"
+            ln -s "$theme" "$dest/$name" && { log "${C_OK}relie (lien mort) : $name${C_OFF}"; n=$((n + 1)); }
+        elif [[ -e "$dest/$name" ]]; then
+            log "${C_WARN}$name existe deja (vrai dossier) — laisse tel quel.${C_OFF}"
+        else
+            ln -s "$theme" "$dest/$name" && { log "lie : $name"; n=$((n + 1)); }
+        fi
+    done < <(find "$CLONES_DIR" -mindepth 2 -maxdepth 3 -name index.theme -printf '%h\n' \
+             2>/dev/null | sort -u)
+    (( n )) && command -v gtk-update-icon-cache >/dev/null \
+        && gtk-update-icon-cache -q "$dest" 2>/dev/null || true
+    report "${C_OK}OK${C_OFF}   themes d'icones ($n nouveau(x) lien(s))"
+}
 
-    # 1. AUR helper
-    ensure_yay || { log "Abandon : yay indispensable pour l'AUR."; return 1; }
+# --- Etape 5 : services systemd --------------------------------------------
+#     Sans ca, une install fraiche demarre sans reseau, sans son et sans ecran
+#     de connexion : les paquets sont la mais le bureau ne se lance pas.
+enable_services() {
+    local unit
+    for unit in "${SERVICES_SYSTEM[@]}"; do
+        if ! systemctl list-unit-files "$unit" >/dev/null 2>&1 \
+           || [[ -z "$(systemctl list-unit-files "$unit" --no-legend 2>/dev/null)" ]]; then
+            log "ignore  : $unit (non installe)"; continue
+        fi
+        # Un gestionnaire de connexion ne doit PAS etre demarre maintenant :
+        # `--now` basculerait sur l'ecran de login en plein bootstrap et
+        # couperait le terminal avant le deploiement des configs. On l'active
+        # pour le prochain demarrage seulement.
+        local -a now=(--now)
+        case "$unit" in gdm.service|greetd.service|sddm.service|lightdm.service) now=() ;; esac
 
-    # 2. Paquets officiels (pacman). Passes en arguments (pas via stdin) pour
-    #    que pacman puisse afficher ses confirmations normalement.
-    if read_pkglist "$PKG_REPO"; then
-        log "Paquets officiels : ${#PKGS_OUT[@]} a verifier..."
-        sudo pacman -S --needed "${PKGS_OUT[@]}" || log "pacman : certains paquets ont echoue."
+        case "$(systemctl is-enabled "$unit" 2>/dev/null)" in
+            enabled|enabled-runtime|static|indirect|alias)
+                log "deja actif : $unit" ;;
+            *)  if sudo systemctl enable "${now[@]}" "$unit" >/dev/null 2>&1; then
+                    if (( ${#now[@]} )); then log "${C_OK}active : $unit${C_OFF}"
+                    else log "${C_OK}active : $unit${C_OFF} ${C_DIM}(au prochain demarrage)${C_OFF}"; fi
+                else
+                    log "${C_ERR}echec  : $unit${C_OFF}"
+                fi ;;
+        esac
+    done
+
+    # Services utilisateur (audio) : necessite une session utilisateur active.
+    if systemctl --user show-environment >/dev/null 2>&1; then
+        for unit in "${SERVICES_USER[@]}"; do
+            systemctl --user enable --now "$unit" >/dev/null 2>&1 \
+                && log "${C_OK}active (user) : $unit${C_OFF}" \
+                || log "ignore (user)  : $unit"
+        done
     else
-        log "packages-repo.txt vide/absent (lance --save d'abord)."
+        log "${C_WARN}Pas de session systemd --user — services audio a activer apres reconnexion.${C_OFF}"
+    fi
+    report "${C_OK}OK${C_OFF}   services systemd"
+}
+
+# --- Etape 6 : compte utilisateur ------------------------------------------
+#     Shell par defaut, groupes, et dossiers XDG (Documents, Images...) — ces
+#     derniers sont attendus par nautilus, les captures d'ecran et les clones.
+setup_user() {
+    # Shell fish
+    local fish_bin; fish_bin="$(command -v fish || true)"
+    if [[ -n "$fish_bin" ]]; then
+        if [[ "$(getent passwd "$USER" | cut -d: -f7)" == "$fish_bin" ]]; then
+            log "shell : fish deja par defaut."
+        elif sudo chsh -s "$fish_bin" "$USER"; then
+            log "${C_OK}shell par defaut -> fish${C_OFF} (effectif a la prochaine session)"
+        else
+            log "${C_WARN}echec du changement de shell (chsh -s $fish_bin $USER).${C_OFF}"
+        fi
     fi
 
-    # 3. Paquets AUR (yay)
-    if read_pkglist "$PKG_AUR"; then
-        log "Paquets AUR : ${#PKGS_OUT[@]} a verifier..."
-        yay -S --needed "${PKGS_OUT[@]}" || log "yay : certains paquets ont echoue."
+    # Groupes
+    local g added=()
+    for g in "${USER_GROUPS[@]}"; do
+        getent group "$g" >/dev/null 2>&1 || continue
+        id -nG "$USER" | tr ' ' '\n' | grep -qxF "$g" && continue
+        sudo usermod -aG "$g" "$USER" && added+=("$g")
+    done
+    if (( ${#added[@]} )); then
+        log "${C_OK}groupes ajoutes : ${added[*]}${C_OFF} (effectif a la reconnexion)"
+    else
+        log "groupes : rien a ajouter."
+    fi
+
+    # Dossiers XDG
+    command -v xdg-user-dirs-update >/dev/null && xdg-user-dirs-update || true
+    mkdir -p "$CLONES_DIR"
+    report "${C_OK}OK${C_OFF}   compte utilisateur (shell, groupes, dossiers XDG)"
+}
+
+step() { printf '\n  %s── %s %s%s\n' "$C_TITLE" "$1" \
+         "$(printf '%.0s─' $(seq 1 $((40 - ${#1} > 0 ? 40 - ${#1} : 1))))" "$C_OFF"; }
+
+cmd_bootstrap() {
+    command -v pacman >/dev/null || die "pacman introuvable — ce bootstrap vise Arch Linux."
+    BOOT_REPORT=(); FAILED_PKGS=()
+
+    printf '\n  %sBOOTSTRAP%s — Arch minimal  ->  bureau niri fonctionnel.\n' "$C_TITLE" "$C_OFF"
+    log "Depot : $DOTFILES"
+    printf '\n  Etapes : depots pacman · paquets officiels · yay · paquets AUR ·\n'
+    printf '           services · shell+groupes · clones git · themes · configs\n'
+    log "${C_DIM}Relançable sans risque : tout ce qui est deja en place est saute.${C_OFF}"
+
+    if [[ -t 0 ]]; then
+        printf '\n  %sLancer le bootstrap ? [o/N]%s ' "$C_KEY" "$C_OFF"
+        local ans; IFS= read -r ans </dev/tty || ans=n
+        [[ $ans == [oOyY] ]] || { printf '\n'; log "Annule."; return 0; }
+    fi
+
+    # Un seul mot de passe pour toute la session (les etapes s'enchainent).
+    sudo -v || { log "${C_ERR}sudo requis.${C_OFF}"; return 1; }
+
+    # 1. Depots + mise a jour du systeme. enable_multilib DOIT passer avant
+    #    l'installation : sinon les paquets multilib (steam) sont introuvables
+    #    et pacman, atomique, annule tout le lot — niri compris.
+    step "1/9  Depots pacman"
+    enable_multilib
+    tune_pacman
+    log "Mise a jour du systeme (pacman -Syu)..."
+    sudo pacman -Syu --needed --noconfirm archlinux-keyring \
+        || log "${C_WARN}keyring : echec (on continue).${C_OFF}"
+    sudo pacman -Syu || log "${C_WARN}-Syu : echec (on continue).${C_OFF}"
+
+    # 2. Paquets officiels. Passes en arguments (pas via stdin) pour que pacman
+    #    affiche normalement ses confirmations.
+    step "2/9  Paquets officiels"
+    if read_pkglist "$PKG_REPO"; then
+        install_batch "Paquets officiels" sudo pacman -S --needed -- "${PKGS_OUT[@]}"
+    else
+        log "packages-repo.txt vide/absent (lance --save d'abord)."
+        report "${C_WARN}!${C_OFF}    packages-repo.txt absent"
+    fi
+
+    # 3. AUR helper
+    step "3/9  yay (AUR)"
+    if ensure_yay; then
+        report "${C_OK}OK${C_OFF}   yay"
+    else
+        report "${C_ERR}KO${C_OFF}   yay — paquets AUR sautes"
+    fi
+
+    # 4. Paquets AUR
+    step "4/9  Paquets AUR"
+    if ! command -v yay >/dev/null; then
+        log "yay absent — etape sautee."
+    elif read_pkglist "$PKG_AUR"; then
+        install_batch "Paquets AUR" yay -S --needed -- "${PKGS_OUT[@]}"
     else
         log "packages-aur.txt vide/absent."
     fi
 
-    # 4. Depots git
-    printf '\n'; clone_all
+    # 5. Services
+    step "5/9  Services systemd"
+    enable_services
+
+    # 6. Compte utilisateur
+    step "6/9  Compte utilisateur"
+    setup_user
+
+    # 7. Depots git
+    step "7/9  Depots git"
+    clone_all
+    report "${C_OK}OK${C_OFF}   clones git"
+
+    # 8. Themes d'icones (dependent des clones)
+    step "8/9  Themes d'icones"
+    link_icon_themes
+
+    # 9. Deploiement des configs : c'est ce qui rend le bureau *le tien*.
+    #    cmd_upgrade fait son propre snapshot, donc annulable via --restore.
+    step "9/9  Configs (depot -> \$HOME)"
+    cmd_upgrade
+    report "${C_OK}OK${C_OFF}   configs deployees"
+
+    # --- Recapitulatif
+    printf '\n  %s╭─ Recapitulatif ──────────────────────────────╮%s\n' "$C_TITLE" "$C_OFF"
+    local line
+    for line in "${BOOT_REPORT[@]}"; do printf '  %b\n' "$line"; done
+    printf '  %s╰──────────────────────────────────────────────╯%s\n' "$C_TITLE" "$C_OFF"
+
+    if (( ${#FAILED_PKGS[@]} )); then
+        printf '\n'; log "${C_ERR}Paquets en echec (${#FAILED_PKGS[@]}) :${C_OFF}"
+        log "  ${FAILED_PKGS[*]}"
+        log "${C_DIM}Souvent : paquet renomme/retire des depots. Corrige la liste,${C_OFF}"
+        log "${C_DIM}puis relance --bootstrap (il ne refera que ce qui manque).${C_OFF}"
+    fi
 
     printf '\n'
-    log "Bootstrap termine. Etapes suivantes conseillees :"
-    log "  - update.sh --upgrade   (deployer les configs)"
-    log "  - verifier les symlinks (ex: ~/.local/share/icons)"
+    log "${C_OK}Bootstrap termine.${C_OFF} Il reste a :"
+    log "  - redemarrer (shell fish, groupes et gdm/niri prennent effet)"
+    log "  - a la connexion, choisir la session ${C_KEY}niri${C_OFF}"
+    log "  - annuler le deploiement des configs : update.sh --restore"
 }
 
 # --- Menu principal ---------------------------------------------------------
@@ -669,7 +963,7 @@ MENU_DESC=(
     "Resoudre      fusion fichier par fichier (diff + choix)"
     "Sync          git pull en gerant tes modifs locales (stash+merge)"
     "Save pkgs     snapshot des paquets installes -> depot"
-    "Bootstrap     [beta] reinstaller paquets + cloner les depots"
+    "Bootstrap     tout installer : Arch minimal -> bureau fonctionnel"
     "Git           pull / add / commit / push"
     "Sortir de l'application"
 )
