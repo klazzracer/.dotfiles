@@ -6,6 +6,8 @@
 #   update.sh --upgrade   depot  -> $HOME    (deploie ; snapshot auto avant)
 #   update.sh --restore   annule le dernier --upgrade (restaure le snapshot)
 #   update.sh --list      liste les elements geres et l'etat des snapshots
+#   update.sh --resolve   fusion interactive fichier par fichier (diff + choix)
+#   update.sh --sync      git pull qui gere tes modifs locales (stash+merge)
 #   update.sh --save      snapshote les paquets installes dans le depot
 #   update.sh --bootstrap [beta] reinstalle paquets (pacman+yay) + clone depots
 #   update.sh --help
@@ -63,7 +65,7 @@ log() { printf '  %s\n' "$*"; }
 die() { printf 'update.sh: %s\n' "$*" >&2; exit 1; }
 
 usage() {
-    sed -n '3,17p' "$0" | sed 's/^#\s\{0,1\}//'
+    sed -n '3,19p' "$0" | sed 's/^#\s\{0,1\}//'
 }
 
 # mirror SRC DST : copie exacte de SRC (fichier ou dossier) vers DST.
@@ -141,6 +143,231 @@ cmd_restore() {
         fi
     done
     log "Termine."
+}
+
+# --- Resolver interactif : fusion fichier par fichier ----------------------
+#     Pour chaque fichier qui differe entre $HOME et le depot, affiche le diff
+#     et demande quelle version garder. Contrairement a --copy / --upgrade
+#     (globaux, unidirectionnels), --resolve traite chaque fichier a part : on
+#     peut pousser certains fichiers vers le depot et d'autres vers $HOME dans
+#     la meme passe. Idéal quand les deux cotes ont diverge ("deux updates").
+
+# apply_one SRC DST : ecrit un fichier unique SRC->DST (cree le parent).
+#     Si SRC est absent, "garder ce cote" signifie supprimer DST.
+apply_one() {
+    local src="$1" dst="$2"
+    if [[ -e "$src" ]]; then
+        mkdir -p "$(dirname "$dst")"
+        rsync -a "$src" "$dst"
+    else
+        rm -f "$dst"
+    fi
+}
+
+# resolve_scan : remplit le tableau global RES_PAIRS avec "hp|dp|label" pour
+#     chaque fichier divergent de tous les ITEMS (fichiers identiques ignores).
+resolve_scan() {
+    RES_PAIRS=()
+    local rel h d sub hp dp
+    for rel in "${ITEMS[@]}"; do
+        h="$HOME/$rel"; d="$DOTFILES/$rel"
+        if [[ -d "$h" || -d "$d" ]]; then
+            local -a subs=()
+            while IFS= read -r sub; do subs+=("$sub"); done < <(
+                { [[ -d "$h" ]] && ( cd "$h" && find . -type f -not -path '*/.git/*' -printf '%P\n' )
+                  [[ -d "$d" ]] && ( cd "$d" && find . -type f -not -path '*/.git/*' -printf '%P\n' ) ; } \
+                  2>/dev/null | sort -u )
+            for sub in "${subs[@]}"; do
+                hp="$h/$sub"; dp="$d/$sub"
+                [[ -e "$hp" || -e "$dp" ]] || continue
+                if [[ -f "$hp" && -f "$dp" ]] && cmp -s "$hp" "$dp"; then continue; fi
+                RES_PAIRS+=("$hp|$dp|$rel/$sub")
+            done
+        else
+            hp="$h"; dp="$d"
+            [[ -e "$hp" || -e "$dp" ]] || continue
+            if [[ -f "$hp" && -f "$dp" ]] && cmp -s "$hp" "$dp"; then continue; fi
+            RES_PAIRS+=("$hp|$dp|$rel")
+        fi
+    done
+}
+
+# show_diff HP DP : affiche le diff (depot = -, systeme = +). Gere absence et
+#     binaire ; tronque au-dela de 300 lignes pour ne pas noyer le terminal.
+show_diff() {
+    local hp="$1" dp="$2"
+    if [[ ! -e "$hp" ]]; then log "${C_WARN}systeme: absent${C_OFF} — le depot a ce fichier"; return; fi
+    if [[ ! -e "$dp" ]]; then log "${C_WARN}depot: absent${C_OFF} — le systeme a ce fichier"; return; fi
+    if ! { grep -qI . "$hp" && grep -qI . "$dp"; } 2>/dev/null; then
+        log "fichier binaire — diff non affiche."; return
+    fi
+    log "${C_DIM}(- = depot, + = systeme)${C_OFF}"
+    if command -v git >/dev/null; then
+        git --no-pager diff --no-index --color=always -- "$dp" "$hp" 2>/dev/null \
+            | tail -n +5 | head -n 300 || true
+    else
+        diff -u --label "depot" --label "systeme" "$dp" "$hp" | head -n 300 || true
+    fi
+}
+
+cmd_resolve() {
+    resolve_scan
+    local total=${#RES_PAIRS[@]}
+    if (( total == 0 )); then
+        log "${C_OK}Rien a resoudre — systeme et depot sont identiques.${C_OFF}"
+        return 0
+    fi
+
+    # Snapshot de securite (comme --upgrade) : le resolver peut ecrire dans
+    # $HOME. Les ecritures cote depot, elles, sont rattrapables via git.
+    local stamp snap rel
+    stamp="$(date +%Y%m%d-%H%M%S)"
+    snap="$BACKUPS/$stamp"
+    log "Snapshot de securite  ->  .backups/$stamp  (annulable via --restore)"
+    for rel in "${ITEMS[@]}"; do
+        if [[ -e "$HOME/$rel" ]]; then
+            mirror "$HOME/$rel" "$snap/$rel"
+        else
+            mkdir -p "$snap"; printf '%s\n' "$rel" >> "$snap/.absents"
+        fi
+    done
+    printf '%s\n' "$stamp" > "$BACKUPS/last"
+
+    printf '\n'; log "$total fichier(s) divergent(s)."
+    local i=0 entry hp dp label key applied=0 skipped=0
+    for entry in "${RES_PAIRS[@]}"; do
+        i=$((i + 1))
+        IFS='|' read -r hp dp label <<< "$entry"
+        printf '\n  %s[%d/%d] %s%s\n' "$C_TITLE" "$i" "$total" "$label" "$C_OFF"
+        show_diff "$hp" "$dp"
+        printf '\n  %sGarder : [h] systeme→depot · [d] depot→systeme · [n] passer · [q] quitter%s\n  > ' \
+            "$C_KEY" "$C_OFF"
+        IFS= read -r key </dev/tty || key=q
+        case "$key" in
+            h|H) apply_one "$hp" "$dp"; log "${C_OK}✔ systeme -> depot${C_OFF}"; applied=$((applied + 1)) ;;
+            d|D) apply_one "$dp" "$hp"; log "${C_OK}✔ depot -> systeme${C_OFF}"; applied=$((applied + 1)) ;;
+            q|Q) log "Arret du resolver."; break ;;
+            *)   log "passe."; skipped=$((skipped + 1)) ;;
+        esac
+    done
+    printf '\n'
+    log "Termine : $applied applique(s), $skipped passe(s)."
+    log "Rollback des ecritures cote systeme : update.sh --restore"
+    log "Rollback cote depot : git -C \"$DOTFILES\" checkout -- ."
+}
+
+# --- Synchronisation git : un "pull" qui gere tes modifs locales -----------
+#     Probleme classique : "git pull" refuse car tu as des modifs non commitees
+#     (ou des fichiers non-suivis que le commit distant veut ajouter). cmd_sync :
+#       1. fait un filet de securite (copie du depot dans .backups),
+#       2. degage les fichiers non-suivis que le distant va apporter,
+#       3. met tes modifs suivies de cote (git stash),
+#       4. recupere le distant (fast-forward ou merge),
+#       5. rejoue tes modifs (fusion auto ligne a ligne),
+#       6. si un VRAI conflit subsiste, le resout fichier par fichier.
+
+# resolve_git_conflicts : pour chaque fichier en conflit (apres un stash pop),
+#     montre le conflit et demande quelle version garder.
+#     NB pendant un stash pop : --ours = version DISTANTE, --theirs = tes modifs.
+resolve_git_conflicts() {
+    local f key
+    while IFS= read -r f; do
+        [[ -z "$f" ]] && continue
+        printf '\n  %sCONFLIT : %s%s\n' "$C_TITLE" "$f" "$C_OFF"
+        git -C "$DOTFILES" --no-pager diff --color=always -- "$f" 2>/dev/null | head -n 200 || true
+        printf '\n  %s[l] garder LOCAL (tes modifs) · [r] garder DISTANT · [e] editer · [n] laisser marque%s\n  > ' \
+            "$C_KEY" "$C_OFF"
+        IFS= read -r key </dev/tty || key=n
+        case "$key" in
+            l|L) git -C "$DOTFILES" checkout --theirs -- "$f" && git -C "$DOTFILES" add -- "$f"
+                 log "${C_OK}local garde.${C_OFF}" ;;
+            r|R) git -C "$DOTFILES" checkout --ours   -- "$f" && git -C "$DOTFILES" add -- "$f"
+                 log "${C_OK}distant garde.${C_OFF}" ;;
+            e|E) "${EDITOR:-nano}" "$DOTFILES/$f" </dev/tty >/dev/tty 2>&1
+                 git -C "$DOTFILES" add -- "$f"; log "${C_OK}edite + marque resolu.${C_OFF}" ;;
+            *)   log "${C_WARN}laisse en conflit (marqueurs <<< dans le fichier).${C_OFF}" ;;
+        esac
+    done < <(git -C "$DOTFILES" diff --name-only --diff-filter=U)
+
+    if git -C "$DOTFILES" diff --name-only --diff-filter=U | grep -q .; then
+        log "${C_WARN}Des conflits restent a resoudre a la main.${C_OFF}"
+    else
+        git -C "$DOTFILES" stash drop >/dev/null 2>&1 || true   # entree de stash residuelle
+        git -C "$DOTFILES" reset -q HEAD -- . 2>/dev/null || true  # remet en "non commite"
+        log "${C_OK}Tous les conflits resolus.${C_OFF}"
+    fi
+}
+
+cmd_sync() {
+    command -v git >/dev/null || die "git introuvable."
+    git -C "$DOTFILES" rev-parse --is-inside-work-tree >/dev/null 2>&1 \
+        || die "$DOTFILES n'est pas un depot git."
+
+    log "Fetch origin..."
+    git -C "$DOTFILES" fetch --prune || { log "${C_ERR}fetch echoue.${C_OFF}"; return 1; }
+
+    local up behind ahead
+    up=$(git -C "$DOTFILES" rev-parse --abbrev-ref --symbolic-full-name '@{u}' 2>/dev/null) \
+        || { log "${C_ERR}Aucun upstream configure pour cette branche.${C_OFF}"; return 1; }
+    read -r behind ahead < <(git -C "$DOTFILES" rev-list --left-right --count '@{u}...HEAD')
+    log "Upstream $up  ·  en retard: ${C_WARN}$behind${C_OFF}  ·  en avance: $ahead"
+
+    if (( behind == 0 )); then
+        log "${C_OK}Rien a recuperer — deja a jour avec $up.${C_OFF}"
+        return 0
+    fi
+
+    # 1. Filet de securite : copie du depot (fichiers, hors .git) dans .backups.
+    local stamp bk
+    stamp="$(date +%Y%m%d-%H%M%S)"
+    bk="$BACKUPS/gitsync-$stamp"
+    log "Filet de securite  ->  .backups/gitsync-$stamp"
+    mkdir -p "$bk"
+    rsync -a "${RSYNC_EXCL[@]}" "$DOTFILES/" "$bk/" 2>/dev/null || true
+
+    # 2. Fichiers non-suivis en local que le distant va ajouter : ils bloquent
+    #    le merge ("untracked would be overwritten"). On les degage (sauvegardes
+    #    dans le filet ci-dessus), le distant fournira sa version.
+    local f blockers
+    blockers=$(comm -12 \
+        <(git -C "$DOTFILES" ls-files --others --exclude-standard | sort) \
+        <(git -C "$DOTFILES" diff --name-only HEAD '@{u}' | sort))
+    if [[ -n "$blockers" ]]; then
+        log "Non-suivis remplaces par la version distante :"
+        while IFS= read -r f; do
+            [[ -z "$f" ]] && continue
+            log "  degage : $f"; rm -f "$DOTFILES/$f"
+        done <<< "$blockers"
+    fi
+
+    # 3. Modifs suivies mises de cote.
+    local dirty=0
+    if ! git -C "$DOTFILES" diff --quiet || ! git -C "$DOTFILES" diff --cached --quiet; then
+        dirty=1
+        log "Mise de cote de tes modifs suivies (git stash)..."
+        git -C "$DOTFILES" stash push -m "sync-$stamp" >/dev/null \
+            || { log "${C_ERR}stash echoue.${C_OFF}"; return 1; }
+    fi
+
+    # 4. Recuperation : fast-forward si possible, sinon merge.
+    log "Recuperation du distant ($behind commit·s)..."
+    if ! git -C "$DOTFILES" merge --ff-only '@{u}' >/dev/null 2>&1; then
+        git -C "$DOTFILES" merge --no-edit '@{u}' || true
+    fi
+
+    # 5. Rejeu des modifs locales (fusion auto ligne a ligne).
+    if (( dirty )); then
+        log "Rejeu de tes modifs locales..."
+        if git -C "$DOTFILES" stash pop >/dev/null 2>&1; then
+            log "${C_OK}Fusionne proprement — tes modifs sont conservees.${C_OFF}"
+        else
+            log "${C_WARN}Conflit(s) reel(s) — resolution fichier par fichier :${C_OFF}"
+            resolve_git_conflicts       # 6.
+        fi
+    fi
+
+    printf '\n'; git -C "$DOTFILES" status -sb | head -n 20
+    printf '\n'; log "Filet de securite conserve : .backups/gitsync-$stamp"
 }
 
 # newest PATH : epoch du fichier le plus recent sous PATH (vide si absent)
@@ -433,13 +660,15 @@ cmd_bootstrap() {
 }
 
 # --- Menu principal ---------------------------------------------------------
-MENU_KEYS=("--copy" "--upgrade" "--restore" "--list" "--save" "--bootstrap" "--git" "Quitter")
-MENU_FN=("cmd_copy" "cmd_upgrade" "cmd_restore" "cmd_list" "cmd_save" "cmd_bootstrap" "cmd_git" "__quit__")
+MENU_KEYS=("--copy" "--upgrade" "--restore" "--list" "--resolve" "--sync" "--save" "--bootstrap" "--git" "Quitter")
+MENU_FN=("cmd_copy" "cmd_upgrade" "cmd_restore" "cmd_list" "cmd_resolve" "cmd_sync" "cmd_save" "cmd_bootstrap" "cmd_git" "__quit__")
 MENU_DESC=(
     "Sauvegarder   \$HOME  ->  depot git"
     "Deployer      depot git  ->  \$HOME   (snapshot avant)"
     "Restaurer     annuler le dernier --upgrade (rollback)"
     "Etat          lister les configs et le dernier snapshot"
+    "Resoudre      fusion fichier par fichier (diff + choix)"
+    "Sync          git pull en gerant tes modifs locales (stash+merge)"
     "Save pkgs     snapshot des paquets installes -> depot"
     "Bootstrap     [beta] reinstaller paquets + cloner les depots"
     "Git           pull / add / commit / push"
@@ -479,6 +708,8 @@ case "${1:-}" in
     --upgrade)   cmd_upgrade ;;
     --restore)   cmd_restore ;;
     --list)      cmd_list ;;
+    --resolve)   cmd_resolve ;;
+    --sync)      cmd_sync ;;
     --save)      cmd_save ;;
     --bootstrap) cmd_bootstrap ;;
     --git)       cmd_git ;;
