@@ -659,7 +659,7 @@ cmd_bootstrap() {
 }
 
 # --- Menu principal ---------------------------------------------------------
-MENU_KEYS=("--copy" "--upgrade" "--restore" "--list" "--resolve" "--sync" "--save" "--bootstrap" "--git" "Quitter")
+MENU_KEYS=("copy" "upgrade" "restore" "list" "resolve" "sync" "save" "bootstrap" "git" "Quitter")
 MENU_FN=("cmd_copy" "cmd_upgrade" "cmd_restore" "cmd_list" "cmd_resolve" "cmd_sync" "cmd_save" "cmd_bootstrap" "cmd_git" "__quit__")
 MENU_DESC=(
     "Sauvegarder   \$HOME  ->  depot git"
