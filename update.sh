@@ -41,7 +41,6 @@ ITEMS=(
     ".config/hypr"
     ".config/kitty"
     ".vim"
-    ".local/share/icons"
 )
 
 # --- Les dossiers .git internes sont ignores partout (copie, comparaison).
