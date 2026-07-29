@@ -4,3 +4,7 @@
 # (rsync les recopie quand meme dans le depot, git les ignore simplement)
 *.bak
 *.pre-papercolor
+
+# ~/.local/share/icons : symlinks vers le theme (Gruvbox, clone via clones.list)
+# + icones/cache generes par les applis. Plus gere par update.sh -> ignore.
+.local/
