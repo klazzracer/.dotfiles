@@ -22,3 +22,6 @@ if status is-interactive
 	fish_add_path ~/Apps
 	fish_add_path ~/.local/bin
 end
+
+# opencode
+fish_add_path /home/sdelage/.opencode/bin
