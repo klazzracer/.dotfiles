@@ -1,0 +1,4 @@
+Brave (Wayland natif sous niri) : les popups (menus de favoris, popup Bitwarden, combobox) gelaient a la souris
+tout en repondant au clavier, parce que Chromium perd le menu de vue quand une "bulle" (sous-surface) se ferme
+pendant qu'il est ouvert ; corrige le 2026-11-04 avec ~/.config/brave-flags.conf contenant
+--disable-features=OzoneBubblesUsePlatformWidgets (XWayland contourne aussi, mais rend flou en echelle 1.25).

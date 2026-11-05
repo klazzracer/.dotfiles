@@ -44,6 +44,7 @@ ITEMS=(
     ".config/hypr"
     ".config/kitty"
     ".config/mimeapps.list"
+    ".config/brave-flags.conf"
     ".config/gtk-3.0"
     ".config/gtk-4.0"
     ".gtkrc-2.0"

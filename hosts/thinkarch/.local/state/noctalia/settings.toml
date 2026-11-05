@@ -18,7 +18,7 @@ widget_order = [ "desktop-widget-0000000000000001" ]
     box_height = 0.0
     box_width = 0.0
     cx = 258.5
-    cy = 627.5
+    cy = 627.50006103515625
     output = "eDP-1"
     placement_height = 960.0
     placement_width = 1536.0
@@ -181,7 +181,7 @@ widget_order = [
     box_height = 196.0
     box_width = 720.0
     cx = 739.0
-    cy = 804.0
+    cy = 804.00006103515625
     output = "eDP-1"
     placement_height = 960.0
     placement_width = 1536.0
@@ -236,16 +236,16 @@ wallpaper_scheme = "m3-content"
 directory = "/home/sdelage/SynologyDrive/Images/Wallpaper-Bank"
 
     [wallpaper.default]
-    path = "/home/sdelage/SynologyDrive/Images/Wallpaper-Bank/wallhaven-yq8y87.jpg"
+    path = "/home/sdelage/SynologyDrive/Images/Wallpaper-Bank/6 - XCx0bJS.jpg"
 
     [wallpaper.last]
-    path = "/home/sdelage/SynologyDrive/Images/Wallpaper-Bank/wallhaven-yq8y87.jpg"
+    path = "/home/sdelage/SynologyDrive/Images/Wallpaper-Bank/6 - XCx0bJS.jpg"
 
     [wallpaper.monitors.DP-2]
     path = "/home/sdelage/SynologyDrive/Images/Wallpaper-Bank/wallhaven-yq8y87.jpg"
 
     [wallpaper.monitors.eDP-1]
-    path = "/home/sdelage/SynologyDrive/Images/Wallpaper-Bank/Firefly.jpg"
+    path = "/home/sdelage/SynologyDrive/Images/Wallpaper-Bank/6 - XCx0bJS.jpg"
 
 [widget.clock]
 color = "tertiary"

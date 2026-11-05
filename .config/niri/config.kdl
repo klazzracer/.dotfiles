@@ -84,6 +84,13 @@ output "HDMI-A-1" {
 	//off
 
 }
+output "eDP-1" {
+
+	mode "1920x1200@60.003"
+	scale 1.25
+	position x=0 y=0
+	//off
+}
 
 // Apply Wallpaper Blured to Overview
 layer-rule {
