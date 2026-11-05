@@ -62,7 +62,10 @@ input {
 
     // Focus windows and outputs automatically when moving the mouse into them.
     // Setting max-scroll-amount="0%" makes it work only on windows already fully on screen.
-    focus-follows-mouse max-scroll-amount="0%"
+    // 0% refusait le focus des que la vue devait bouger d un seul pixel (apres un
+    // scroll au pavé tactile, ou pour remettre la marge de 10 px d une colonne) :
+    // la 1re fenetre ne prenait plus le focus. 5% = ~75 px de recalage tolere.
+    focus-follows-mouse max-scroll-amount="5%"
 }
 
 
