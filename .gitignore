@@ -7,6 +7,9 @@
 
 # ~/.local/share/icons : symlinks vers le theme (Gruvbox, clone via clones.list)
 # + icones/cache generes par les applis. Plus gere par update.sh -> ignore.
-.local/
+/.local/
 *.bak.*
 *.bak-*
+
+# Ancien format noctalia (< v5) : plus gere, la config v5 est dans hosts/<machine>/.local/state/noctalia/
+.config/noctalia/

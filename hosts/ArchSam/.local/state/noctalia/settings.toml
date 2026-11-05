@@ -1,0 +1,286 @@
+config_version = 16
+
+[backdrop]
+enabled = true
+
+[bar.default]
+enabled = false
+thickness = 35
+
+    [bar.default.monitor.DP-1]
+    enabled = true
+    start = [ "launcher", "wallpaper", "workspaces", "widget" ]
+
+[brightness]
+enable_ddcutil = true
+
+[desktop_widgets]
+schema_version = 2
+widget_order = [ "desktop-widget-0000000000000001", "desktop-widget-0000000000000003", "desktop-widget-0000000000000004" ]
+
+    [desktop_widgets.grid]
+    cell_size = 24
+    major_interval = 4
+    visible = true
+
+    [desktop_widgets.widget.desktop-widget-0000000000000001]
+    box_height = 336.0
+    box_width = 800.0
+    cx = 416.0
+    cy = 1264.0
+    output = "DP-1"
+    placement_height = 1440.0
+    placement_width = 2560.0
+    rotation = 0.0
+    type = "clock"
+
+        [desktop_widgets.widget.desktop-widget-0000000000000001.settings]
+        background = false
+        background_color = "primary"
+        background_opacity = 0.0
+        font_family = "Z003"
+
+    [desktop_widgets.widget.desktop-widget-0000000000000003]
+    box_height = 128.0
+    box_width = 624.0
+    cx = 416.0
+    cy = 1312.0
+    output = "DP-1"
+    placement_height = 1440.0
+    placement_width = 2560.0
+    rotation = 0.0
+    type = "audio_visualizer"
+
+        [desktop_widgets.widget.desktop-widget-0000000000000003.settings]
+        background = false
+        bands = 32
+        centered = false
+        color_2 = "error"
+        mirrored = true
+        reversed = false
+        show_when_idle = true
+
+    [desktop_widgets.widget.desktop-widget-0000000000000004]
+    box_height = 0.0
+    box_width = 0.0
+    cx = 170.0
+    cy = 1272.0
+    output = "HDMI-A-1"
+    placement_height = 1440.0
+    placement_width = 2560.0
+    rotation = 0.0
+    type = "fancy_audio_visualizer"
+
+        [desktop_widgets.widget.desktop-widget-0000000000000004.settings]
+        background = false
+
+[idle]
+behavior_order = [ "lock", "screen-off", "lock-and-suspend" ]
+pre_action_fade_seconds = 10
+
+    [idle.behavior.lock]
+    action = "lock"
+    enabled = true
+    timeout = 600.0
+
+    [idle.behavior.lock-and-suspend]
+    action = "lock_and_suspend"
+    enabled = false
+    timeout = 900.0
+
+    [idle.behavior.screen-off]
+    action = "screen_off"
+    enabled = true
+    timeout = 300.0
+
+[lockscreen_widgets]
+enabled = true
+schema_version = 2
+widget_order = [
+    "lockscreen-widget-0000000000000007",
+    "lockscreen-login-box@HDMI-A-1",
+    "lockscreen-login-box@DP-1",
+    "lockscreen-widget-0000000000000003",
+    "lockscreen-widget-0000000000000004",
+    "lockscreen-widget-0000000000000009"
+]
+
+    [lockscreen_widgets.grid]
+    cell_size = 16
+    major_interval = 4
+    visible = true
+
+    [lockscreen_widgets.widget."lockscreen-login-box@DP-1"]
+    box_height = 150.0
+    box_width = 720.0
+    cx = 1280.0
+    cy = 882.0
+    output = "DP-1"
+    placement_height = 1440.0
+    placement_width = 2560.0
+    rotation = 0.0
+    type = "login_box"
+
+        [lockscreen_widgets.widget."lockscreen-login-box@DP-1".settings]
+        background_color = "surface_container"
+        background_opacity = 0.88
+        background_radius = 12.0
+        center_password_text = false
+        input_opacity = 1.0
+        input_radius = 6.0
+        layout = "regular"
+        show_caps_lock = true
+        show_keyboard_layout = true
+        show_login_button = true
+        show_media = true
+        show_session_buttons = false
+        show_unlock_hint = true
+        show_weather = true
+
+    [lockscreen_widgets.widget."lockscreen-login-box@HDMI-A-1"]
+    box_height = 150.0
+    box_width = 720.0
+    cx = 1280.0
+    cy = 862.0
+    enabled = false
+    output = "HDMI-A-1"
+    placement_height = 1440.0
+    placement_width = 2560.0
+    rotation = 0.0
+    type = "login_box"
+
+        [lockscreen_widgets.widget."lockscreen-login-box@HDMI-A-1".settings]
+        background_color = "surface_container"
+        background_opacity = 0.88
+        background_radius = 12.0
+        center_password_text = false
+        input_opacity = 1.0
+        input_radius = 6.0
+        layout = "regular"
+        show_caps_lock = true
+        show_keyboard_layout = true
+        show_login_button = true
+        show_media = true
+        show_session_buttons = false
+        show_unlock_hint = true
+        show_weather = true
+
+    [lockscreen_widgets.widget.lockscreen-widget-0000000000000003]
+    box_height = 288.0
+    box_width = 416.0
+    cx = 1056.0
+    cy = 576.0
+    output = "DP-1"
+    placement_height = 1440.0
+    placement_width = 2560.0
+    rotation = 0.0
+    type = "clock"
+
+    [lockscreen_widgets.widget.lockscreen-widget-0000000000000004]
+    box_height = 288.0
+    box_width = 464.0
+    cx = 1528.0
+    cy = 576.0
+    output = "DP-1"
+    placement_height = 1440.0
+    placement_width = 2560.0
+    rotation = 0.0
+    type = "sysmon"
+
+        [lockscreen_widgets.widget.lockscreen-widget-0000000000000004.settings]
+        stat = "cpu_usage"
+        stat2 = "cpu_temp"
+
+    [lockscreen_widgets.widget.lockscreen-widget-0000000000000007]
+    box_height = 0.0
+    box_width = 0.0
+    cx = 1280.0
+    cy = 1146.0
+    output = "DP-1"
+    placement_height = 1440.0
+    placement_width = 2560.0
+    rotation = 0.0
+    type = "fancy_audio_visualizer"
+
+        [lockscreen_widgets.widget.lockscreen-widget-0000000000000007.settings]
+        background = false
+
+    [lockscreen_widgets.widget.lockscreen-widget-0000000000000009]
+    box_height = 0.0
+    box_width = 0.0
+    cx = 1280.0
+    cy = 274.0
+    output = "DP-1"
+    placement_height = 1440.0
+    placement_width = 2560.0
+    rotation = 0.0
+    type = "sticker"
+
+        [lockscreen_widgets.widget.lockscreen-widget-0000000000000009.settings]
+        image_path = "/home/sdelage/SynologyDrive/Images/Profiles/bwr_jr_profil.png"
+        opacity = 1.0
+
+[notification]
+monitors = [ "DP-1" ]
+
+[plugin_settings."noctalia/wallhaven"]
+api_key = "K1ghIl9DH1rClQRG2JoCMSXddQZrInmJ"
+download_dir = "/home/sdelage/SynologyDrive/Images/Wallpaper-Bank"
+
+[plugins]
+enabled = [ "noctalia/kaomoji", "noctalia/notes", "noctalia/wallhaven", "cleboost/ssh-launcher", "alexander/screen-toolkit" ]
+
+[shell]
+telemetry_enabled = true
+
+    [shell.panel]
+    open_near_click_wallpaper = true
+    polkit_placement = "attached"
+    session_position = "center"
+
+    [shell.screenshot]
+    directory = "/home/sdelage/Pictures/Screenshots"
+
+[theme]
+builtin = "Ayu"
+community_palette = "Gruber Darker"
+mode = "dark"
+source = "community"
+wallpaper_scheme = "m3-content"
+
+[wallpaper]
+directory = "/home/sdelage/SynologyDrive/Images/Wallpaper-Bank"
+transition_on_startup = true
+
+    [wallpaper.default]
+    path = "/home/sdelage/SynologyDrive/Images/Wallpaper-Bank/wallhaven-og7rk7.jpg"
+
+    [wallpaper.last]
+    path = "/home/sdelage/SynologyDrive/Images/Wallpaper-Bank/1354384.png"
+
+    [wallpaper.monitors.DP-1]
+    path = "/home/sdelage/SynologyDrive/Images/Wallpaper-Bank/wallhaven-og7rk7.jpg"
+
+    [wallpaper.monitors.HDMI-A-1]
+    path = "/home/sdelage/SynologyDrive/Images/Wallpaper-Bank/1354384.png"
+
+    [[wallpaper.favorite]]
+    community_palette = "Cyberpunk"
+    palette_source = "community"
+    path = "/home/sdelage/SynologyDrive/Images/Wallpaper-Bank/wallhaven-9d3l21.png"
+    theme_mode = "dark"
+
+[widget.brightness]
+enabled = true
+
+[widget.clock]
+color = "primary"
+format = "%Y-%m-%d - (˶ᵔ ᵕ ᵔ˶) - %H:%M:%S"
+icon_color = "secondary"
+
+[widget.network]
+enabled = true
+icon_color = "tertiary"
+
+[widget.widget]
+type = "yuuto/arch-updater:widget"

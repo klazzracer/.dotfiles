@@ -1,0 +1,261 @@
+config_version = 16
+
+[bar.default]
+background_opacity = 0.89999997988343239
+end = [ "tray", "notifications", "clipboard", "network", "bluetooth", "volume", "battery", "session" ]
+start = [ "launcher", "wallpaper", "workspaces", "media" ]
+
+[desktop_widgets]
+schema_version = 2
+widget_order = [ "desktop-widget-0000000000000001" ]
+
+    [desktop_widgets.grid]
+    cell_size = 16
+    major_interval = 4
+    visible = true
+
+    [desktop_widgets.widget.desktop-widget-0000000000000001]
+    box_height = 0.0
+    box_width = 0.0
+    cx = 258.5
+    cy = 627.5
+    output = "eDP-1"
+    placement_height = 960.0
+    placement_width = 1536.0
+    rotation = 0.0
+    type = "fancy_audio_visualizer"
+
+        [desktop_widgets.widget.desktop-widget-0000000000000001.settings]
+        background = false
+
+[idle]
+behavior_order = [ "lock", "screen-off", "lock-and-suspend" ]
+
+    [idle.behavior.lock]
+    action = "lock"
+    enabled = true
+    timeout = 180.0
+
+    [idle.behavior.lock-and-suspend]
+    action = "lock_and_suspend"
+    enabled = false
+    timeout = 900.0
+
+    [idle.behavior.screen-off]
+    action = "screen_off"
+    enabled = true
+    timeout = 120.0
+
+[location]
+auto_locate = true
+
+[lockscreen_widgets]
+enabled = false
+schema_version = 2
+widget_order = [
+    "lockscreen-login-box@DP-11",
+    "lockscreen-login-box@DP-9",
+    "lockscreen-login-box@eDP-1",
+    "lockscreen-login-box@DP-2",
+    "lockscreen-login-box@DP-1"
+]
+
+    [lockscreen_widgets.grid]
+    cell_size = 16
+    major_interval = 4
+    visible = true
+
+    [lockscreen_widgets.widget."lockscreen-login-box@DP-1"]
+    box_height = 196.0
+    box_width = 810.0
+    cx = 1280.0
+    cy = 1258.0
+    output = "DP-1"
+    placement_height = 1440.0
+    placement_width = 2560.0
+    rotation = 0.0
+    type = "login_box"
+
+        [lockscreen_widgets.widget."lockscreen-login-box@DP-1".settings]
+        background_color = "surface_container"
+        background_opacity = 0.88
+        background_radius = 12.0
+        center_password_text = false
+        input_opacity = 1.0
+        input_radius = 6.0
+        layout = "regular"
+        show_caps_lock = true
+        show_keyboard_layout = true
+        show_login_button = true
+        show_media = true
+        show_password_reveal = true
+        show_session_buttons = true
+        show_unlock_hint = true
+        show_weather = true
+
+    [lockscreen_widgets.widget."lockscreen-login-box@DP-11"]
+    box_height = 196.0
+    box_width = 810.0
+    cx = 1280.0
+    cy = 1258.0
+    output = "DP-11"
+    placement_height = 1440.0
+    placement_width = 2560.0
+    rotation = 0.0
+    type = "login_box"
+
+        [lockscreen_widgets.widget."lockscreen-login-box@DP-11".settings]
+        background_color = "surface_container"
+        background_opacity = 0.88
+        background_radius = 12.0
+        center_password_text = false
+        input_opacity = 1.0
+        input_radius = 6.0
+        layout = "regular"
+        show_caps_lock = true
+        show_keyboard_layout = true
+        show_login_button = true
+        show_media = true
+        show_password_reveal = true
+        show_session_buttons = true
+        show_unlock_hint = true
+        show_weather = true
+
+    [lockscreen_widgets.widget."lockscreen-login-box@DP-2"]
+    box_height = 196.0
+    box_width = 810.0
+    cx = 1280.0
+    cy = 1258.0
+    output = "DP-2"
+    placement_height = 1440.0
+    placement_width = 2560.0
+    rotation = 0.0
+    type = "login_box"
+
+        [lockscreen_widgets.widget."lockscreen-login-box@DP-2".settings]
+        background_color = "surface_container"
+        background_opacity = 0.88
+        background_radius = 12.0
+        center_password_text = false
+        input_opacity = 1.0
+        input_radius = 6.0
+        layout = "regular"
+        show_caps_lock = true
+        show_keyboard_layout = true
+        show_login_button = true
+        show_media = true
+        show_password_reveal = true
+        show_session_buttons = true
+        show_unlock_hint = true
+        show_weather = true
+
+    [lockscreen_widgets.widget."lockscreen-login-box@DP-9"]
+    box_height = 196.0
+    box_width = 810.0
+    cx = 1280.0
+    cy = 1258.0
+    output = "DP-9"
+    placement_height = 1440.0
+    placement_width = 2560.0
+    rotation = 0.0
+    type = "login_box"
+
+        [lockscreen_widgets.widget."lockscreen-login-box@DP-9".settings]
+        background_color = "surface_container"
+        background_opacity = 0.88
+        background_radius = 12.0
+        center_password_text = false
+        input_opacity = 1.0
+        input_radius = 6.0
+        layout = "regular"
+        show_caps_lock = true
+        show_keyboard_layout = true
+        show_login_button = true
+        show_media = true
+        show_password_reveal = true
+        show_session_buttons = true
+        show_unlock_hint = true
+        show_weather = true
+
+    [lockscreen_widgets.widget."lockscreen-login-box@eDP-1"]
+    box_height = 196.0
+    box_width = 720.0
+    cx = 739.0
+    cy = 804.0
+    output = "eDP-1"
+    placement_height = 960.0
+    placement_width = 1536.0
+    rotation = 0.0
+    type = "login_box"
+
+        [lockscreen_widgets.widget."lockscreen-login-box@eDP-1".settings]
+        background_color = "surface_container"
+        background_opacity = 0.88
+        background_radius = 12.0
+        center_password_text = false
+        input_opacity = 1.0
+        input_radius = 6.0
+        layout = "regular"
+        show_caps_lock = true
+        show_keyboard_layout = true
+        show_login_button = true
+        show_media = true
+        show_password_reveal = true
+        show_session_buttons = true
+        show_unlock_hint = true
+        show_weather = true
+
+[plugin_settings."noctalia/wallhaven"]
+api_key = "K1ghIl9DH1rClQRG2JoCMSXddQZrInmJ"
+
+[plugins]
+enabled = [ "noctalia/notes", "noctalia/wallhaven", "cleboost/ssh-launcher", "alexander/screen-toolkit" ]
+
+[shell]
+app_icon_color = "error"
+avatar_path = "/home/sdelage/SynologyDrive/Images/Profiles/bwr_jr_profil.png"
+external_ip_enabled = true
+settings_show_advanced = false
+
+    [shell.greeter_sync]
+    auto_sync = true
+
+[theme]
+builtin = "Tokyo-Night"
+community_palette = "Ayu Blue"
+mode = "dark"
+source = "wallpaper"
+wallpaper_scheme = "m3-content"
+
+    [theme.templates]
+    builtin_ids = [ "niri" ]
+    community_ids = [ "discord" ]
+    enable_community_templates = false
+
+[wallpaper]
+directory = "/home/sdelage/SynologyDrive/Images/Wallpaper-Bank"
+
+    [wallpaper.default]
+    path = "/home/sdelage/SynologyDrive/Images/Wallpaper-Bank/wallhaven-yq8y87.jpg"
+
+    [wallpaper.last]
+    path = "/home/sdelage/SynologyDrive/Images/Wallpaper-Bank/wallhaven-yq8y87.jpg"
+
+    [wallpaper.monitors.DP-2]
+    path = "/home/sdelage/SynologyDrive/Images/Wallpaper-Bank/wallhaven-yq8y87.jpg"
+
+    [wallpaper.monitors.eDP-1]
+    path = "/home/sdelage/SynologyDrive/Images/Wallpaper-Bank/Firefly.jpg"
+
+[widget.clock]
+color = "tertiary"
+format = "{:%Y-%m-%d -- %H:%M}"
+
+[widget.network]
+show_label = false
+
+[widget.tray]
+capsule = true
+
+[widget.volume]
+show_label = false

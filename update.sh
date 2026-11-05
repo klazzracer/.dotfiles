@@ -37,13 +37,22 @@ CLONES_DIR="$HOME/Documents/Clones"      # tous les depots sont clones ici
 ITEMS=(
     ".vimrc"
     ".config/niri"
-    ".config/noctalia"
     ".config/fish"
     ".config/nano"
     ".config/hypr"
     ".config/kitty"
+    ".config/mimeapps.list"
     ".vim"
 )
+
+# --- Elements propres a chaque machine : memes chemins relatifs a $HOME, mais
+#     stockes dans le depot sous hosts/<nom-machine>/ (uname -n). Ex : la config
+#     noctalia v5 contient la disposition des ecrans et des widgets, differente
+#     entre le laptop (thinkarch) et la tower (ArchSam).
+HOST_ITEMS=(
+    ".local/state/noctalia/settings.toml"
+)
+HOST_DIR="$DOTFILES/hosts/$(uname -n)"
 
 # --- Les dossiers .git internes sont ignores partout (copie, comparaison).
 #     Raison : ~/.vim/pack/themes/start/* sont des depots git clones. Git
@@ -93,6 +102,14 @@ cmd_copy() {
             log "absent  : $rel (ignore)"
         fi
     done
+    for rel in "${HOST_ITEMS[@]}"; do
+        if [[ -e "$HOME/$rel" ]]; then
+            mirror "$HOME/$rel" "$HOST_DIR/$rel"
+            log "sauve   : $rel  (hosts/$(uname -n))"; n=$((n + 1))
+        else
+            log "absent  : $rel (ignore)"
+        fi
+    done
     log "$n element(s) copie(s) dans le depot."
 }
 
@@ -111,6 +128,14 @@ cmd_upgrade() {
             printf '%s\n' "$rel" >> "$snap/.absents"
         fi
     done
+    for rel in "${HOST_ITEMS[@]}"; do
+        if [[ -e "$HOME/$rel" ]]; then
+            mirror "$HOME/$rel" "$snap/$rel"
+        else
+            mkdir -p "$snap"
+            printf '%s\n' "$rel" >> "$snap/.absents"
+        fi
+    done
     printf '%s\n' "$stamp" > "$BACKUPS/last"
 
     log "Deploiement  depot  ->  \$HOME"
@@ -120,6 +145,14 @@ cmd_upgrade() {
             log "applique : $rel"
         else
             log "absent du depot : $rel (ignore)"
+        fi
+    done
+    for rel in "${HOST_ITEMS[@]}"; do
+        if [[ -e "$HOST_DIR/$rel" ]]; then
+            mirror "$HOST_DIR/$rel" "$HOME/$rel"
+            log "applique : $rel  (hosts/$(uname -n))"
+        else
+            log "absent du depot : hosts/$(uname -n)/$rel (ignore)"
         fi
     done
     log "Termine. Annuler avec :  update.sh --restore"
@@ -133,7 +166,7 @@ cmd_restore() {
     [[ -d "$snap" ]] || die "snapshot introuvable : $snap"
 
     log "Restauration du snapshot $stamp  ->  \$HOME"
-    for rel in "${ITEMS[@]}"; do
+    for rel in "${ITEMS[@]}" "${HOST_ITEMS[@]}"; do
         if [[ -e "$snap/$rel" ]]; then
             mirror "$snap/$rel" "$HOME/$rel"
             log "restaure : $rel"
@@ -438,8 +471,9 @@ cmd_list() {
     printf '\n  %-20s %-17s %-17s %s\n' "Element" "systeme" "depot" "etat"
     printf '  %-20s %-17s %-17s %s\n' "--------------------" "-----------------" "-----------------" "----"
     local rel h d mh md ih idp etat show
-    for rel in "${ITEMS[@]}"; do
+    for rel in "${ITEMS[@]}" "${HOST_ITEMS[@]}"; do
         h="$HOME/$rel"; d="$DOTFILES/$rel"
+        for hrel in "${HOST_ITEMS[@]}"; do [[ $rel == "$hrel" ]] && d="$HOST_DIR/$rel"; done
         mh=$(newest "$h"); md=$(newest "$d")
         ih=${mh%.*}; idp=${md%.*}; show=0
         if [[ -z $mh && -z $md ]]; then
