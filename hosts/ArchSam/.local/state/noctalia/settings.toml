@@ -243,7 +243,7 @@ telemetry_enabled = true
 
 [theme]
 builtin = "Ayu"
-community_palette = "Gruber Darker"
+community_palette = "Gruvbox Material Medium"
 mode = "dark"
 source = "community"
 wallpaper_scheme = "m3-content"
@@ -284,3 +284,9 @@ icon_color = "tertiary"
 
 [widget.widget]
 type = "yuuto/arch-updater:widget"
+
+[theme.templates]
+builtin_ids = [ "niri", "gtk3", "gtk4", "kitty" ]
+community_ids = [ "discord" ]
+enable_builtin_templates = true
+enable_community_templates = false

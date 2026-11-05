@@ -19,3 +19,12 @@
 
 # Couleurs niri generees par noctalia depuis le fond d ecran : propre a chaque machine.
 .config/niri/noctalia.kdl
+
+# Generes par les templates noctalia (regeneres avec : noctalia msg templates-apply)
+.config/gtk-3.0/noctalia.css
+.config/gtk-4.0/noctalia.css
+.config/kitty/themes/
+# Signets Nautilus : montages propres a chaque machine
+.config/gtk-3.0/bookmarks
+# Ancien theme kitty fige (PaperColor), remplace par le template noctalia
+.config/kitty/current-theme.conf

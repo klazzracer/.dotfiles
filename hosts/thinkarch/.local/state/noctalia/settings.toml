@@ -222,13 +222,13 @@ settings_show_advanced = false
 
 [theme]
 builtin = "Tokyo-Night"
-community_palette = "Ayu Blue"
+community_palette = "Gruvbox Material Medium"
 mode = "dark"
-source = "wallpaper"
+source = "community"
 wallpaper_scheme = "m3-content"
 
     [theme.templates]
-    builtin_ids = [ "niri" ]
+    builtin_ids = [ "niri", "gtk3", "gtk4", "kitty" ]
     community_ids = [ "discord" ]
     enable_community_templates = false
 
