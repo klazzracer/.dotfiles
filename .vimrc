@@ -17,21 +17,15 @@ filetype plugin indent on
 " ---------------------------------------------------------------------------
 " Couleurs / theme
 " ---------------------------------------------------------------------------
-" Themes installes dans ~/.vim/pack/themes/start/ (packages natifs vim 8+,
-" aucun gestionnaire de plugins necessaire) : embark, papercolor-theme,
-" gruvbox-material.
+" Embark (https://github.com/embark-theme/vim) installe dans
+" ~/.vim/pack/themes/start/embark -- charge automatiquement par vim 8+,
+" aucun gestionnaire de plugins necessaire.
 "
-" Ces themes exigent le truecolor : termguicolors DOIT etre actif avant le
+" Embark exige le truecolor : termguicolors DOIT etre actif avant le
 " colorscheme, sinon les couleurs 24 bits sont ignorees.
 set termguicolors
-
-" background ET les options du theme doivent etre definis AVANT le
-" colorscheme : gruvbox-material les lit au moment du chargement.
 set background=dark
-let g:gruvbox_material_background = 'medium'      " soft | medium | hard
-let g:gruvbox_material_foreground = 'material'    " material | mix | original
-let g:gruvbox_material_better_performance = 1
-colorscheme gruvbox-material
+colorscheme PaperColor
 
 " ---------------------------------------------------------------------------
 " Presse-papier systeme

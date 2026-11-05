@@ -36,6 +36,3 @@ end
 # >>> grok installer >>>
 fish_add_path $HOME/.grok/bin
 # <<< grok installer <<<
-
-# opencode
-fish_add_path /home/sdelage/.opencode/bin
