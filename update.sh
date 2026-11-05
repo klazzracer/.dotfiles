@@ -9,6 +9,8 @@
 #   update.sh --resolve   fusion interactive fichier par fichier (diff + choix)
 #   update.sh --sync      git pull qui gere tes modifs locales (stash+merge)
 #   update.sh --save      snapshote les paquets installes dans le depot
+#   update.sh --theme     verifie + applique le theme commun : paquets, icones,
+#                         curseur, configs GTK/kitty/fish/vim, palette noctalia
 #   update.sh --bootstrap installe TOUT le bureau depuis un Arch minimal :
 #                         depots pacman (multilib), paquets, AUR, services,
 #                         shell+groupes, clones, themes, puis deploie configs
@@ -78,7 +80,7 @@ log() { printf '  %s\n' "$*"; }
 die() { printf 'update.sh: %s\n' "$*" >&2; exit 1; }
 
 usage() {
-    sed -n '3,21p' "$0" | sed 's/^#\s\{0,1\}//'
+    sed -n '3,23p' "$0" | sed 's/^#\s\{0,1\}//'
 }
 
 # mirror SRC DST : copie exacte de SRC (fichier ou dossier) vers DST.
@@ -996,8 +998,174 @@ cmd_bootstrap() {
 }
 
 # --- Menu principal ---------------------------------------------------------
-MENU_KEYS=("copy" "upgrade" "restore" "list" "resolve" "sync" "save" "bootstrap" "git" "Quitter")
-MENU_FN=("cmd_copy" "cmd_upgrade" "cmd_restore" "cmd_list" "cmd_resolve" "cmd_sync" "cmd_save" "cmd_bootstrap" "cmd_git" "__quit__")
+
+# --- Theme commun : verifie et applique ------------------------------------
+#     Une seule commande pour qu'une machine ait exactement le theme du depot :
+#     paquets, theme d'icones (clone + lien + cache), curseur, fichiers de
+#     config, gsettings, palette + templates noctalia. Chaque etape dit si elle
+#     etait deja bonne ("OK") ou ce qu'elle a corrige ("fix"). Commence par
+#     verifier que le depot lui-meme contient tout ce qu'il faut.
+THEME_GTK="adw-gtk3-dark"
+THEME_ICONS="Gruvbox-Plus-Dark"
+THEME_CURSOR="Bibata-Material-Sunset"
+THEME_FONT="Adwaita Sans 11"
+THEME_PALETTE="Gruvbox Material Medium"
+THEME_TEMPLATES='["niri","gtk3","gtk4","kitty"]'
+THEME_PKGS=(adw-gtk-theme ttf-jetbrains-mono-nerd ttf-dejavu ttf-liberation kitty)
+THEME_FILES=(                       # fichiers/dossiers du depot a poser tels quels
+    ".config/gtk-3.0/settings.ini" ".config/gtk-3.0/gtk.css"
+    ".config/gtk-4.0/settings.ini" ".config/gtk-4.0/gtk.css"
+    ".gtkrc-2.0"
+    ".config/kitty/kitty.conf"
+    ".config/fish/conf.d/theme-gruvbox-material.fish"
+    ".vimrc" ".vim/pack/themes/start/gruvbox-material"
+)
+THEME_SNAP_ITEMS=(".config/gtk-3.0" ".config/gtk-4.0" ".gtkrc-2.0" ".config/kitty" ".config/fish" ".vimrc" ".vim")
+
+theme_check_repo() {
+    # Le depot a-t-il tout ce que --theme va deployer ? (fichiers, listes, host)
+    local rel ko=0 host; host="$(uname -n)"
+    for rel in "${THEME_FILES[@]}" "scripts/install-cursor.sh" "clones.list" "packages-repo.txt" \
+               "hosts/$host/.local/state/noctalia/settings.toml"; do
+        [[ -e "$DOTFILES/$rel" ]] || { log "${C_ERR}manque dans le depot : $rel${C_OFF}"; ko=$((ko + 1)); }
+    done
+    grep -q 'gruvbox-plus-icon-pack' "$CLONES" 2>/dev/null \
+        || { log "${C_ERR}clones.list : gruvbox-plus-icon-pack absent${C_OFF}"; ko=$((ko + 1)); }
+    local p
+    for p in "${THEME_PKGS[@]}"; do
+        grep -qx "$p" "$PKG_REPO" 2>/dev/null || { log "${C_WARN}packages-repo.txt : $p absent${C_OFF}"; ko=$((ko + 1)); }
+    done
+    grep -q "$THEME_PALETTE" "$DOTFILES/hosts/$host/.local/state/noctalia/settings.toml" 2>/dev/null \
+        || { log "${C_WARN}hosts/$host : palette '$THEME_PALETTE' absente de settings.toml${C_OFF}"; ko=$((ko + 1)); }
+    grep -q "$THEME_CURSOR" "$DOTFILES/.config/gtk-3.0/settings.ini" "$DOTFILES/.gtkrc-2.0" "$DOTFILES/.config/niri/config.kdl" 2>/dev/null \
+        || { log "${C_WARN}configs du depot : curseur $THEME_CURSOR non reference${C_OFF}"; ko=$((ko + 1)); }
+    local dirty
+    dirty="$(cd "$DOTFILES" && git status --porcelain -- "${THEME_FILES[@]}" scripts/install-cursor.sh hosts 2>/dev/null | head -5)"
+    [[ -n "$dirty" ]] && log "${C_WARN}non commite dans le depot :${C_OFF}"$'\n'"$dirty"
+    if (( ko )); then report "${C_ERR}!!${C_OFF}   depot : $ko element(s) manquant(s) (voir ci-dessus)"
+    else report "${C_OK}OK${C_OFF}   depot : tout est present pour le theme"; fi
+}
+
+theme_packages() {
+    missing_only "${THEME_PKGS[@]}"
+    if (( ${#MISSING[@]} == 0 )); then
+        report "${C_OK}OK${C_OFF}   paquets (${PRESENT_N})"; return 0
+    fi
+    log "paquets manquants : ${MISSING[*]}"
+    if [[ -t 0 ]] && sudo pacman -S --needed "${MISSING[@]}"; then
+        report "${C_OK}fix${C_OFF}  paquets installes : ${MISSING[*]}"
+    else
+        report "${C_ERR}!!${C_OFF}   paquets a installer : sudo pacman -S --needed ${MISSING[*]}"
+        return 1
+    fi
+}
+
+theme_icons() {
+    local url clone="$CLONES_DIR/gruvbox-plus-icon-pack" dest="$HOME/.local/share/icons/$THEME_ICONS" fixed=0
+    if [[ ! -d "$clone/.git" ]]; then
+        url="$(grep -m1 'gruvbox-plus-icon-pack' "$CLONES" | awk '{print $1}')"
+        [[ -n "$url" ]] && { mkdir -p "$CLONES_DIR"; git clone -q "$url" "$clone" && fixed=1; }
+    fi
+    [[ -d "$clone/$THEME_ICONS" ]] || { report "${C_ERR}!!${C_OFF}   icones : $clone/$THEME_ICONS introuvable"; return 1; }
+    if [[ ! -e "$dest" || ( -L "$dest" && ! -e "$dest" ) ]]; then
+        rm -f "$dest"; mkdir -p "${dest%/*}"; ln -s "$clone/$THEME_ICONS" "$dest"; fixed=1
+    fi
+    # Cache plus vieux que le dossier -> GTK le rejette et rescanne 46 000 fichiers a
+    # chaque lancement d'appli (plusieurs dixiemes de seconde) : on le regenere.
+    local real; real="$(readlink -f "$dest")"
+    if [[ ! -f "$real/icon-theme.cache" || "$real" -nt "$real/icon-theme.cache" ]]; then
+        command -v gtk-update-icon-cache >/dev/null && gtk-update-icon-cache -f -t "$real" >/dev/null 2>&1 && fixed=1
+    fi
+    if (( fixed )); then report "${C_OK}fix${C_OFF}  icones $THEME_ICONS (clone/lien/cache corrige)"
+    else report "${C_OK}OK${C_OFF}   icones $THEME_ICONS"; fi
+}
+
+theme_cursor() {
+    local variant="${THEME_CURSOR#Bibata-Material-}"
+    if [[ -d "$HOME/.local/share/icons/$THEME_CURSOR/cursors" ]]; then
+        "$DOTFILES/scripts/install-cursor.sh" "$variant" >/dev/null 2>&1 || true
+        report "${C_OK}OK${C_OFF}   curseur $THEME_CURSOR"
+    elif "$DOTFILES/scripts/install-cursor.sh" "$variant" >/dev/null 2>&1; then
+        report "${C_OK}fix${C_OFF}  curseur $THEME_CURSOR installe"
+    else
+        report "${C_ERR}!!${C_OFF}   curseur : archive absente (Synology/Themes) — scripts/install-cursor.sh $variant"
+    fi
+}
+
+theme_files() {
+    local rel changed=0 stamp snap
+    for rel in "${THEME_FILES[@]}"; do
+        [[ -e "$DOTFILES/$rel" ]] || continue
+        if ! diff -rq --exclude=.git "$DOTFILES/$rel" "$HOME/$rel" >/dev/null 2>&1; then
+            if (( changed == 0 )); then        # snapshot des ITEMS touches, format --restore
+                stamp="$(date +%Y%m%d-%H%M%S)"; snap="$BACKUPS/$stamp"
+                local it; for it in "${THEME_SNAP_ITEMS[@]}"; do [[ -e "$HOME/$it" ]] && mirror "$HOME/$it" "$snap/$it"; done
+                printf '%s\n' "$stamp" > "$BACKUPS/last"
+            fi
+            mirror "$DOTFILES/$rel" "$HOME/$rel"; log "pose : $rel"; changed=$((changed + 1))
+        fi
+    done
+    if (( changed )); then report "${C_OK}fix${C_OFF}  configs : $changed fichier(s) pose(s) (snapshot .backups/$stamp)"
+    else report "${C_OK}OK${C_OFF}   configs GTK / kitty / fish / vim identiques au depot"; fi
+}
+
+theme_gsettings() {
+    command -v gsettings >/dev/null || { report "${C_WARN}!${C_OFF}    gsettings absent"; return 0; }
+    local s=org.gnome.desktop.interface k v cur fixed=0
+    while IFS='=' read -r k v; do
+        cur="$(gsettings get $s "$k" 2>/dev/null | tr -d "'")"
+        [[ "$cur" == "$v" ]] && continue
+        gsettings set $s "$k" "$v" && { log "gsettings $k : '$cur' -> '$v'"; fixed=$((fixed + 1)); }
+    done <<EOT
+gtk-theme=$THEME_GTK
+icon-theme=$THEME_ICONS
+cursor-theme=$THEME_CURSOR
+cursor-size=24
+font-name=$THEME_FONT
+color-scheme=prefer-dark
+EOT
+    if (( fixed )); then report "${C_OK}fix${C_OFF}  gsettings ($fixed cle(s))"
+    else report "${C_OK}OK${C_OFF}   gsettings"; fi
+}
+
+theme_noctalia() {
+    local live="$HOME/.local/state/noctalia/settings.toml" host; host="$(uname -n)"
+    if noctalia msg color-scheme-get >/dev/null 2>&1; then
+        local cur; cur="$(noctalia msg color-scheme-get 2>/dev/null)"
+        local tpl; tpl="$(noctalia msg config-get theme.templates 2>/dev/null | grep builtin_ids || true)"
+        local fixed=0
+        [[ "$cur" == "community $THEME_PALETTE" ]] || { noctalia msg color-scheme-set community "$THEME_PALETTE" >/dev/null && fixed=1; }
+        for t in niri gtk3 gtk4 kitty; do [[ "$tpl" == *"'$t'"* ]] || { noctalia msg config-set theme.templates.builtin_ids "$THEME_TEMPLATES" >/dev/null; fixed=1; break; }; done
+        noctalia msg templates-apply >/dev/null 2>&1 || true
+        if (( fixed )); then report "${C_OK}fix${C_OFF}  noctalia : palette/templates poses, templates appliques"
+        else report "${C_OK}OK${C_OFF}   noctalia : $THEME_PALETTE, templates niri/gtk3/gtk4/kitty"; fi
+    elif [[ -f "$live" ]] && grep -q "$THEME_PALETTE" "$live" && grep -q '"gtk3"' "$live"; then
+        report "${C_OK}OK${C_OFF}   noctalia (pas joignable, mais settings.toml deja bon)"
+    elif [[ -f "$DOTFILES/hosts/$host/.local/state/noctalia/settings.toml" ]]; then
+        mirror "$DOTFILES/hosts/$host/.local/state/noctalia/settings.toml" "$live"
+        report "${C_OK}fix${C_OFF}  noctalia : settings.toml pose depuis hosts/$host (effet au prochain demarrage)"
+    else
+        report "${C_ERR}!!${C_OFF}   noctalia : ni instance joignable ni hosts/$host/settings.toml"
+    fi
+}
+
+cmd_theme() {
+    BOOT_REPORT=()
+    log "Theme commun : $THEME_GTK · icones $THEME_ICONS · curseur $THEME_CURSOR · palette $THEME_PALETTE"
+    theme_check_repo
+    theme_packages || true
+    theme_icons    || true
+    theme_cursor
+    theme_files
+    theme_gsettings
+    theme_noctalia
+    printf '\n'; log "Bilan :"
+    local line; for line in "${BOOT_REPORT[@]}"; do printf '  %b\n' "$line"; done
+    log "Les applis deja ouvertes gardent l'ancien rendu : relance-les (ou reconnecte-toi)."
+}
+
+MENU_KEYS=("copy" "upgrade" "restore" "list" "resolve" "sync" "save" "theme" "bootstrap" "git" "Quitter")
+MENU_FN=("cmd_copy" "cmd_upgrade" "cmd_restore" "cmd_list" "cmd_resolve" "cmd_sync" "cmd_save" "cmd_theme" "cmd_bootstrap" "cmd_git" "__quit__")
 MENU_DESC=(
     "Sauvegarder   \$HOME  ->  depot git"
     "Deployer      depot git  ->  \$HOME   (snapshot avant)"
@@ -1006,6 +1174,7 @@ MENU_DESC=(
     "Resoudre      fusion fichier par fichier (diff + choix)"
     "Sync          git pull en gerant tes modifs locales (stash+merge)"
     "Save pkgs     snapshot des paquets installes -> depot"
+    "Theme         verifier + appliquer le theme commun (paquets, icones, curseur, configs, noctalia)"
     "Bootstrap     tout installer : Arch minimal -> bureau fonctionnel"
     "Git           pull / add / commit / push"
     "Sortir de l'application"
@@ -1047,6 +1216,7 @@ case "${1:-}" in
     --resolve)   cmd_resolve ;;
     --sync)      cmd_sync ;;
     --save)      cmd_save ;;
+    --theme)     cmd_theme ;;
     --bootstrap) cmd_bootstrap ;;
     --git)       cmd_git ;;
     -h|--help)   usage ;;
