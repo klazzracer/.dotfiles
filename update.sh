@@ -964,7 +964,7 @@ cmd_bootstrap() {
     link_icon_themes
     # Curseur commun (archive sur le Synology, voir scripts/install-cursor.sh)
     if "$DOTFILES/scripts/install-cursor.sh" >/dev/null 2>&1; then
-        report "${C_OK}OK${C_OFF}   curseur Bibata-Material-Sage"
+        report "${C_OK}OK${C_OFF}   curseur Bibata-Material-Sunset"
     else
         report "${C_WARN}!!${C_OFF}   curseur : archive Synology absente, relance scripts/install-cursor.sh plus tard"
     fi

@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
-# install-cursor.sh — installe le theme de curseur commun (Material Bibata, variante Sage)
+# install-cursor.sh — installe le theme de curseur commun (Material Bibata, variante Sunset)
 # depuis l'archive gardee sur le Synology (trop lourde pour git : ~30 Mo par variante).
 #
-#   scripts/install-cursor.sh            installe Bibata-Material-Sage
+#   scripts/install-cursor.sh            installe Bibata-Material-Sunset
 #   scripts/install-cursor.sh Teal       installe une autre variante du meme pack
 #
 # Appele aussi par update.sh --bootstrap. Les reglages qui pointent vers le theme
@@ -10,7 +10,7 @@
 # ~/.icons/default sont poses ici pour les applis qui n'ecoutent que ca.
 set -euo pipefail
 
-VARIANT="${1:-Sage}"
+VARIANT="${1:-Sunset}"
 THEME="Bibata-Material-$VARIANT"
 ARCHIVE="${CURSOR_ARCHIVE:-$HOME/SynologyDrive/Themes/bibata-material-dark-v1.5.0.tar.gz}"
 DEST="$HOME/.local/share/icons/$THEME"

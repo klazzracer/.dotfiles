@@ -731,8 +731,8 @@ binds {
 include "./noctalia.kdl"
 
 
-// Curseur commun laptop/ArchSam (Material Bibata, variante Sage = accent Gruvbox)
+// Curseur commun laptop/ArchSam (Material Bibata, variante Sunset = orange secondaire Gruvbox)
 cursor {
-    xcursor-theme "Bibata-Material-Sage"
+    xcursor-theme "Bibata-Material-Sunset"
     xcursor-size 24
 }
