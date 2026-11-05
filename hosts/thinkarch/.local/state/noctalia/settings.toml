@@ -209,7 +209,7 @@ widget_order = [
 api_key = "K1ghIl9DH1rClQRG2JoCMSXddQZrInmJ"
 
 [plugins]
-enabled = [ "noctalia/notes", "noctalia/wallhaven", "cleboost/ssh-launcher", "alexander/screen-toolkit" ]
+enabled = [ "noctalia/notes", "noctalia/wallhaven", "cleboost/ssh-launcher", "alexander/screen-toolkit", "noctalia/kaomoji" ]
 
 [shell]
 app_icon_color = "error"
