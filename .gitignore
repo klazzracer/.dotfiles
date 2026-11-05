@@ -13,3 +13,6 @@
 
 # Ancien format noctalia (< v5) : plus gere, la config v5 est dans hosts/<machine>/.local/state/noctalia/
 .config/noctalia/
+
+# Variables universelles fish : etat propre a chaque machine (chemins, fisher), regenere par fish.
+.config/fish/fish_variables
