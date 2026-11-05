@@ -730,3 +730,9 @@ binds {
 // in the layout block above, so changing the Noctalia theme restyles niri.
 include "./noctalia.kdl"
 
+
+// Curseur commun laptop/ArchSam (Material Bibata, variante Sage = accent Gruvbox)
+cursor {
+    xcursor-theme "Bibata-Material-Sage"
+    xcursor-size 24
+}

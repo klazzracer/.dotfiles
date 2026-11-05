@@ -962,6 +962,12 @@ cmd_bootstrap() {
     # 8. Themes d'icones (dependent des clones)
     step "8/9  Themes d'icones"
     link_icon_themes
+    # Curseur commun (archive sur le Synology, voir scripts/install-cursor.sh)
+    if "$DOTFILES/scripts/install-cursor.sh" >/dev/null 2>&1; then
+        report "${C_OK}OK${C_OFF}   curseur Bibata-Material-Sage"
+    else
+        report "${C_WARN}!!${C_OFF}   curseur : archive Synology absente, relance scripts/install-cursor.sh plus tard"
+    fi
 
     # 9. Deploiement des configs : c'est ce qui rend le bureau *le tien*.
     #    cmd_upgrade fait son propre snapshot, donc annulable via --restore.
