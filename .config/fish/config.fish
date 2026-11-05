@@ -21,7 +21,21 @@ if status is-interactive
 	
 	fish_add_path ~/Apps
 	fish_add_path ~/.local/bin
+
 end
+
+#function y
+#	set tmp (mktemp -t "yazi-cwd.XXXXXX")
+#	command yazi $argv --cwd-file="$tmp"
+#	if read -z cwd < "$tmp"; and [ "$cwd" != "$PWD" ]; and test -d "$cwd"
+#		builtin cd -- "$cwd"
+#	end
+#	command rm -f -- "$tmp"
+#end
+
+# >>> grok installer >>>
+fish_add_path $HOME/.grok/bin
+# <<< grok installer <<<
 
 # opencode
 fish_add_path /home/sdelage/.opencode/bin

@@ -78,12 +78,13 @@ output "HDMI-A-1" {
 	mode "2560x1440@99.946"
 	scale 1
 	position x=2560 y=0
+	//off
 
 }
 
-// Set the overview wallpaper on the backdrop.
+// Apply Wallpaper Blured to Overview
 layer-rule {
-  match namespace="^noctalia-overview*"
+  match namespace="^noctalia-backdrop"
   place-within-backdrop true
 }
 
@@ -528,9 +529,11 @@ binds {
     Mod+Shift+F { fullscreen-window; }
 
     // Print
-    Print { spawn-sh "~/.dotfiles/scripts/screenshot-annotate"; }
-    Ctrl+Print { screenshot-screen; }
-    Alt+Print { screenshot-window; }
+    //Print { spawn-sh "~/.dotfiles/scripts/screenshot-annotate"; }
+    Print { spawn-sh "noctalia msg plugin alexander/screen-toolkit:service all toggle"; } 
+    Ctrl+Print { spawn-sh "noctalia msg plugin alexander/screen-toolkit:service all annotate"; }
+    //Ctrl+Print { screenshot-screen; }
+    //Alt+Print { screenshot-window; }
     
     // The quit action will show a confirmation dialog to avoid accidental exits.
     Mod+Shift+E { quit; }
