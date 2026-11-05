@@ -28,3 +28,5 @@
 .config/gtk-3.0/bookmarks
 # Ancien theme kitty fige (PaperColor), remplace par le template noctalia
 .config/kitty/current-theme.conf
+.config/gtk-3.0/noctalia-extensions.css
+.config/gtk-4.0/noctalia-extensions.css
