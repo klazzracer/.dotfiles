@@ -16,3 +16,6 @@
 
 # Variables universelles fish : etat propre a chaque machine (chemins, fisher), regenere par fish.
 .config/fish/fish_variables
+
+# Couleurs niri generees par noctalia depuis le fond d ecran : propre a chaque machine.
+.config/niri/noctalia.kdl
